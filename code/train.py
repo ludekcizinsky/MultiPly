@@ -21,7 +21,7 @@ def main(opt):
         dirpath=Path(opt.output_dir) / "checkpoints",
         filename="{epoch:04d}-{loss}",
         save_on_train_epoch_end=True,
-        every_n_epochs=100,
+        every_n_epochs=opt.checkpoint_every_n_epochs,
         save_top_k=-1,
         save_last=True)
     logger = WandbLogger(
@@ -35,8 +35,8 @@ def main(opt):
         devices=1,
         accelerator="gpu",
         callbacks=[checkpoint_callback],
-        max_epochs=10000,
-        check_val_every_n_epoch=50,
+        max_epochs=opt.total_num_epochs,
+        check_val_every_n_epoch=opt.check_val_every_n_epochs,
         logger=logger,
         log_every_n_steps=1,
         num_sanity_val_steps=0
@@ -48,7 +48,6 @@ def main(opt):
     validset = create_dataset(opt.dataset.valid)
 
     if opt.model.is_continue == True:
-        # checkpoint = sorted(glob.glob("checkpoints/*.ckpt"))[-1]
         checkpoint = sorted(glob.glob("checkpoints/epoch=*.ckpt"))[-1]
         trainer.fit(model, trainset, validset, ckpt_path=checkpoint)
     else: 

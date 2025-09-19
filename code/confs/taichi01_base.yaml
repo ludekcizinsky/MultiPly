@@ -16,3 +16,8 @@ output_dir: /scratch/izar/cizinsky/multiply-output/
 pretrained_models_path: /scratch/izar/cizinsky/pretrained
 smpl_dir: /home/cizinsky/MultiPly/code/lib/smpl
 wandb_dir: /scratch/izar/cizinsky/multiply-output/wandb/
+
+
+total_num_epochs: 10000
+checkpoint_every_n_epochs: 100
+check_val_every_n_epochs: 50
