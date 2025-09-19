@@ -60,6 +60,8 @@ class MultiplyModel(pl.LightningModule):
         self.sigmoid = nn.Sigmoid()
         self.l2_loss = nn.MSELoss(reduction='mean')
 
+        self._stepped_joint = False
+        self._stepped_pose  = False
 
     def init_params(self, opt):
         # depth end determines whether apply depth & interpenetration loss during or at the end of epochs.
@@ -219,10 +221,21 @@ class MultiplyModel(pl.LightningModule):
         self.manual_backward(loss_output["loss"])
         cur_opt.step()
 
-        sch_every_N_epoch = 1
-        if self.trainer.is_last_batch and (self.trainer.current_epoch + 1) % sch_every_N_epoch == 0:
-            sch_joint.step()
-            sch_pose.step()
+        # mark which optimizer stepped
+        if cur_opt is opt_joint:
+            self._stepped_joint = True
+        elif cur_opt is opt_pose:
+            self._stepped_pose = True
+
+        # step schedulers only for optimizers that actually stepped this epoch
+        if self.trainer.is_last_batch:
+            if self._stepped_joint and sch_joint is not None:
+                sch_joint.step()
+            if self._stepped_pose and sch_pose is not None:
+                sch_pose.step()
+            # reset flags for next epoch
+            self._stepped_joint = False
+            self._stepped_pose  = False
 
         self.untoggle_optimizer(cur_opt)
         self.unfreeze_shape_model()
