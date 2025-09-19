@@ -37,11 +37,12 @@ def main(opt):
         num_sanity_val_steps=0
     )
 
-    # betas_path = os.path.join(hydra.utils.to_absolute_path('..'), 'data', opt.dataset.train.data_dir, 'mean_shape.npy')
     betas_path = Path(opt.dataset.train.data_dir) / "mean_shape.npy"
     model = MultiplyModel(opt, betas_path)
     trainset = create_dataset(opt.dataset.train)
     validset = create_dataset(opt.dataset.valid)
+
+    quit()
 
     if opt.model.is_continue == True:
         # checkpoint = sorted(glob.glob("checkpoints/*.ckpt"))[-1]

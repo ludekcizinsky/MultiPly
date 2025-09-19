@@ -78,10 +78,10 @@ class Multiply(nn.Module):
             # self.deformer_list = []
             if len(betas.shape) == 2:
                 for i in range(betas.shape[0]):
-                    deformer = SMPLDeformer(betas=betas[i], gender=self.gender_list[i])
+                    deformer = SMPLDeformer(betas=betas[i], gender=self.gender_list[i], smpl_dir=smpl_dir_path)
                     self.deformer_list.append(deformer)
             else:
-                deformer = SMPLDeformer(betas=betas, gender='male')
+                deformer = SMPLDeformer(betas=betas, gender='male', smpl_dir=smpl_dir_path)
                 self.deformer_list.append(deformer)
 
 
@@ -97,10 +97,10 @@ class Multiply(nn.Module):
         self.smpl_server_list = torch.nn.ModuleList()
         if len(betas.shape) == 2:
             for i in range(betas.shape[0]):
-                smpl_server = SMPLServer(gender=self.gender_list[i], betas=betas[i])
+                smpl_server = SMPLServer(gender=self.gender_list[i], betas=betas[i], smpl_dir=smpl_dir_path)
                 self.smpl_server_list.append(smpl_server)
         else:
-            smpl_server = SMPLServer(gender='male', betas=betas)
+            smpl_server = SMPLServer(gender='male', betas=betas, smpl_dir=smpl_dir_path)
             self.smpl_server_list.append(smpl_server)
 
         if opt.smpl_init:

@@ -3,13 +3,15 @@ import hydra
 import numpy as np
 from ..smpl.body_models import SMPL
 
+from pathlib import Path
+
 class SMPLServer(torch.nn.Module):
 
-    def __init__(self, gender='neutral', betas=None, v_template=None):
+    def __init__(self, smpl_dir, gender='neutral', betas=None, v_template=None):
         super().__init__()
 
-
-        self.smpl = SMPL(model_path=hydra.utils.to_absolute_path('lib/smpl/smpl_model'),
+        smpl_model_path = Path(smpl_dir) / 'smpl_model'
+        self.smpl = SMPL(model_path=smpl_model_path,
                          gender=gender,
                          batch_size=1,
                          use_hands=False,
