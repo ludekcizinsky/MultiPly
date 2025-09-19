@@ -15,3 +15,4 @@ run: ${dataset.train.subject}
 output_dir: /scratch/izar/cizinsky/multiply-output/
 pretrained_models_path: /scratch/izar/cizinsky/pretrained
 smpl_dir: /home/cizinsky/MultiPly/code/lib/smpl
+wandb_dir: /scratch/izar/cizinsky/multiply-output/wandb/

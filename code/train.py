@@ -24,7 +24,11 @@ def main(opt):
         every_n_epochs=100,
         save_top_k=-1,
         save_last=True)
-    logger = WandbLogger(project=opt.project_name, name=f"{opt.exp}/{opt.run}")
+    logger = WandbLogger(
+        project=opt.project_name, 
+        name=f"{opt.exp}/{opt.run}",
+        save_dir=opt.wandb_dir
+    )
 
     trainer = pl.Trainer(
         # gpus=1,
@@ -42,8 +46,6 @@ def main(opt):
     model = MultiplyModel(opt, betas_path)
     trainset = create_dataset(opt.dataset.train)
     validset = create_dataset(opt.dataset.valid)
-
-    quit()
 
     if opt.model.is_continue == True:
         # checkpoint = sorted(glob.glob("checkpoints/*.ckpt"))[-1]
