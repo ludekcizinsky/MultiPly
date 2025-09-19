@@ -7,6 +7,9 @@ import glob
 import os
 from segment_anything import sam_model_registry, SamPredictor
 from tqdm import tqdm
+
+from pathlib import Path
+
 # # for visualization
 # def show_mask(mask, ax, random_color=False):
 #     if random_color:
@@ -33,22 +36,22 @@ from tqdm import tqdm
 #     ax.add_patch(plt.Rectangle((x0, y0), w, h, edgecolor='green', facecolor=(0, 0, 0, 0), lw=2))
 
 class SAMServer():
-    def __init__(self, opt):
-        root = os.path.join("../data", opt.data_dir)
-        root = hydra.utils.to_absolute_path(root)
+    def __init__(self, opt, pretrained_dir_path):
+
+        root = Path(opt.data_dir)
+
         # images
-        img_dir = os.path.join(root, "image")
+        img_dir =  root / "image"
         self.img_paths = sorted(glob.glob(f"{img_dir}/*.png"))
 
         self.training_indices = list(range(opt.start_frame, opt.end_frame, 1))
         self.img_paths = [self.img_paths[i] for i in self.training_indices]
 
         model_type = "vit_h"
-        checkpoint_path = "./outputs/sam_vit_h_4b8939.pth"
-        # model_type = "vit_b"
-        # checkpoint_path = "./outputs/sam_vit_b_01ec64.pth"
+        checkpoint_path = Path(pretrained_dir_path) / "sam_vit_h_4b8939.pth"
+
         device = "cuda"
-        sam = sam_model_registry[model_type](checkpoint=hydra.utils.to_absolute_path(checkpoint_path))
+        sam = sam_model_registry[model_type](checkpoint=str(checkpoint_path))
         sam.to(device=device)
         self.sam = sam
         self.opt = opt

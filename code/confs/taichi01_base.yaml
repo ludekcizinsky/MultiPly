@@ -1,6 +1,6 @@
 hydra:
     run:
-        dir: "outputs/${exp}/${run}"
+        dir: "/scratch/izar/cizinsky/multiply-output/hydra/${exp}/${run}"
 
 defaults:
   - model: taichi01_model
@@ -11,3 +11,7 @@ seed: 42
 project_name: "VOLSDF_cam_norm"
 exp: ${dataset.train.dataset}
 run: ${dataset.train.subject}
+
+output_dir: /scratch/izar/cizinsky/multiply-output/
+pretrained_models_path: /scratch/izar/cizinsky/pretrained
+smpl_dir: /home/cizinsky/MultiPly/code/lib/smpl

@@ -24,13 +24,15 @@ from torch import nn
 import kaolin
 from pytorch3d import ops
 from lib.datasets.Hi4D import weighted_sampling
+
+
 class MultiplyModel(pl.LightningModule):
     def __init__(self, opt, betas_path) -> None:
         super().__init__()
         self.automatic_optimization = False
         self.init_params(opt)
         self.nerfacc = True
-        self.model = Multiply(opt.model, betas_path)
+        self.model = Multiply(opt.model, betas_path, opt.pretrained_models_path, opt.smpl_dir)
         self.opt = opt
         self.num_training_frames = opt.model.num_training_frames
         self.start_frame = opt.dataset.train.start_frame
@@ -52,7 +54,7 @@ class MultiplyModel(pl.LightningModule):
             self.training_modules += ['body_model_list']
 
         self.loss = Loss(opt.model.loss)
-        self.sam_server = SAMServer(opt.dataset.train)
+        self.sam_server = SAMServer(opt.dataset.train, opt.pretrained_models_path)
         self.using_sam = opt.dataset.train.using_SAM
         self.pose_correction_epoch = opt.model.pose_correction_epoch
         self.sigmoid = nn.Sigmoid()

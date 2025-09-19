@@ -3,18 +3,21 @@ from lib.datasets import create_dataset
 import hydra
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import WandbLogger
-import os
 import glob
-from omegaconf import OmegaConf
+from pathlib import Path
 
-@hydra.main(config_path="confs", config_name="taichi01_base")
+import warnings
+warnings.filterwarnings(
+    "ignore",
+    message=r"The `srun` command is available on your system but is not used\."
+)
+
+@hydra.main(config_path="confs", config_name="taichi01_base", version_base=None)
 def main(opt):
     pl.seed_everything(42)
-    print("Working dir:", os.getcwd())
-    print(OmegaConf.to_yaml(opt))
 
     checkpoint_callback = pl.callbacks.ModelCheckpoint(
-        dirpath="checkpoints/",
+        dirpath=Path(opt.output_dir) / "checkpoints",
         filename="{epoch:04d}-{loss}",
         save_on_train_epoch_end=True,
         every_n_epochs=100,
@@ -34,7 +37,8 @@ def main(opt):
         num_sanity_val_steps=0
     )
 
-    betas_path = os.path.join(hydra.utils.to_absolute_path('..'), 'data', opt.dataset.train.data_dir, 'mean_shape.npy')
+    # betas_path = os.path.join(hydra.utils.to_absolute_path('..'), 'data', opt.dataset.train.data_dir, 'mean_shape.npy')
+    betas_path = Path(opt.dataset.train.data_dir) / "mean_shape.npy"
     model = MultiplyModel(opt, betas_path)
     trainset = create_dataset(opt.dataset.train)
     validset = create_dataset(opt.dataset.valid)

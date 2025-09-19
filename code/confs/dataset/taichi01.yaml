@@ -8,7 +8,7 @@ train:
     shuffle: True
     worker: 8
     num_person: 2
-    data_dir : taichi01_vitpose_openpose/
+    data_dir : /scratch/izar/cizinsky/multiply-output/taichi01_vitpose_openpose
     num_sample : 512
     using_SAM: True
     ratio_uncertain: 0.5
@@ -25,7 +25,7 @@ valid:
     shuffle: False
     worker: 8
 
-    data_dir : taichi01_vitpose_openpose/
+    data_dir : /scratch/izar/cizinsky/multiply-output/taichi01_vitpose_openpose
     num_sample : -1
     pixel_per_batch: 512
     using_SAM: True
@@ -42,7 +42,7 @@ test:
     shuffle: False
     worker: 0
 
-    data_dir : taichi01_vitpose_openpose/
+    data_dir : /scratch/izar/cizinsky/multiply-output/taichi01_vitpose_openpose
     num_sample : 0
     pixel_per_batch: 512
     using_SAM: True

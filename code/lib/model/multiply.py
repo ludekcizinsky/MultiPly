@@ -20,8 +20,11 @@ from pytorch3d import ops
 from nerfacc import render_weight_from_density, pack_info, accumulate_along_rays
 from .deformer import skinning
 import json
+
+from pathlib import Path
+
 class Multiply(nn.Module):
-    def __init__(self, opt, betas_path):
+    def __init__(self, opt, betas_path, pretrained_dir_path, smpl_dir_path):
         super().__init__()
         betas = np.load(betas_path)
         self.using_nerfacc = True
@@ -68,7 +71,8 @@ class Multiply(nn.Module):
 
         self.use_smpl_deformer = opt.use_smpl_deformer
         # self.gender = 'male'
-        self.gender_list = np.load(betas_path[:-14] + "gender.npy")
+        # self.gender_list = np.load(betas_path[:-14] + "gender.npy")
+        self.gender_list = np.load(betas_path.parent / "gender.npy")
         if self.use_smpl_deformer:
             self.deformer_list = torch.nn.ModuleList()
             # self.deformer_list = []
@@ -100,17 +104,19 @@ class Multiply(nn.Module):
             self.smpl_server_list.append(smpl_server)
 
         if opt.smpl_init:
+            pretrained_models_dir = Path(pretrained_dir_path)
             if self.use_person_encoder:
-                smpl_model_state = torch.load(hydra.utils.to_absolute_path('./outputs/smpl_init_%s_256_id.pth' % 'male'))
+                smpl_model_state = torch.load(pretrained_models_dir / f'smpl_init_male_256_id.pth')
             else:
-                smpl_model_state = torch.load(hydra.utils.to_absolute_path('./outputs/smpl_init_%s_256.pth' % 'male'))
+                smpl_model_state = torch.load(pretrained_models_dir / f'smpl_init_male_256.pth')
             for implicit_network in self.foreground_implicit_network_list:
                 implicit_network.load_state_dict(smpl_model_state["model_state_dict"], strict=False)
             if not self.use_smpl_deformer:
                 self.deformer.load_state_dict(smpl_model_state["deformer_state_dict"])
 
         if self.smpl_surface_weight > 0:
-            self.smpl_vertex_part = json.load(open(hydra.utils.to_absolute_path('./outputs/smpl_vert_segmentation.json')))
+            smpl_vert_path = Path(smpl_dir_path) / "vert_segmentation.json"
+            self.smpl_vertex_part = json.load(open(smpl_vert_path))
 
         self.mesh_v_cano_list = []
         self.mesh_f_cano_list = []
