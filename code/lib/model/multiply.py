@@ -106,9 +106,9 @@ class Multiply(nn.Module):
         if opt.smpl_init:
             pretrained_models_dir = Path(pretrained_dir_path)
             if self.use_person_encoder:
-                smpl_model_state = torch.load(pretrained_models_dir / f'smpl_init_male_256_id.pth')
+                smpl_model_state = torch.load(pretrained_models_dir / f'smpl_init_male_256_id.pth', weights_only=False)
             else:
-                smpl_model_state = torch.load(pretrained_models_dir / f'smpl_init_male_256.pth')
+                smpl_model_state = torch.load(pretrained_models_dir / f'smpl_init_male_256.pth', weights_only=False)
             for implicit_network in self.foreground_implicit_network_list:
                 implicit_network.load_state_dict(smpl_model_state["model_state_dict"], strict=False)
             if not self.use_smpl_deformer:

@@ -156,29 +156,29 @@ class TriPlaneMulti(nn.Module):
             self.all_yz.append(plane_yz_list)
             self.all_xz.append(plane_xz_list)
             adapt_layer = nn.Sequential(
-                nn.utils.weight_norm(nn.Linear(features * self.L_number * 3, 256)),
+                nn.utils.parametrizations.weight_norm(nn.Linear(features * self.L_number * 3, 256)),
                 nn.Softplus(beta=100),
-                nn.utils.weight_norm(nn.Linear(256, 256)),
+                nn.utils.parametrizations.weight_norm(nn.Linear(256, 256)),
                 nn.Softplus(beta=100),
-                # nn.utils.weight_norm(nn.Linear(256, 64)), # used for multi_add version
+                # nn.utils.parametrizations.weight_norm(nn.Linear(256, 64)), # used for multi_add version
             )
             self.all_persons_layer.append(adapt_layer)
             # used for multi_add version
             # implicit_layer = nn.Sequential(
-            #     nn.utils.weight_norm(nn.Linear(64 + 69 + input_ch, 256)),
+            #     nn.utils.parametrizations.weight_norm(nn.Linear(64 + 69 + input_ch, 256)),
             #     nn.Softplus(beta=100),
-            #     nn.utils.weight_norm(nn.Linear(256, 256)),
+            #     nn.utils.parametrizations.weight_norm(nn.Linear(256, 256)),
             #     nn.Softplus(beta=100),
-            #     nn.utils.weight_norm(nn.Linear(256, 256)),
+            #     nn.utils.parametrizations.weight_norm(nn.Linear(256, 256)),
             #     nn.Softplus(beta=100),
-            #     nn.utils.weight_norm(nn.Linear(256, 256)),
+            #     nn.utils.parametrizations.weight_norm(nn.Linear(256, 256)),
             # )
             # self.all_persons_implicit_layer.append(implicit_layer)
             last_layer = nn.Linear(256, 64 + 1)
             init_val = 1e-5
             torch.nn.init.constant_(last_layer.bias, 0.0)
             torch.nn.init.uniform_(last_layer.weight, -init_val, init_val)
-            last_layer = nn.utils.weight_norm(last_layer)
+            last_layer = nn.utils.parametrizations.weight_norm(last_layer)
             self.last_layer.append(last_layer)
         self.dim = features
         self.n_input_dims = 3

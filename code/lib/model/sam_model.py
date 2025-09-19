@@ -35,6 +35,17 @@ from pathlib import Path
 #     w, h = box[2] - box[0], box[3] - box[1]
 #     ax.add_patch(plt.Rectangle((x0, y0), w, h, edgecolor='green', facecolor=(0, 0, 0, 0), lw=2))
 
+
+
+def build_sam_safe(model_type: str, checkpoint_path: str, device="cuda"):
+    # Build the model WITHOUT loading the checkpoint inside SA
+    sam = sam_model_registry[model_type](checkpoint=None)
+    # Safely load weights (no pickle execution)
+    state = torch.load(checkpoint_path, weights_only=True, map_location="cpu")
+    sam.load_state_dict(state, strict=True)
+    sam.to(device).eval()
+    return sam
+
 class SAMServer():
     def __init__(self, opt, pretrained_dir_path):
 
@@ -51,7 +62,8 @@ class SAMServer():
         checkpoint_path = Path(pretrained_dir_path) / "sam_vit_h_4b8939.pth"
 
         device = "cuda"
-        sam = sam_model_registry[model_type](checkpoint=str(checkpoint_path))
+        # sam = sam_model_registry[model_type](checkpoint=str(checkpoint_path))
+        sam = build_sam_safe(model_type, str(checkpoint_path))
         sam.to(device=device)
         self.sam = sam
         self.opt = opt

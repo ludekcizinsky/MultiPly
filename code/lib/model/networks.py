@@ -80,7 +80,7 @@ class ImplicitNet(nn.Module):
                     torch.nn.init.constant_(lin.bias, 0.0)
                     torch.nn.init.uniform_(lin.weight, -init_val, init_val)
             if opt.weight_norm:
-                lin = nn.utils.weight_norm(lin)
+                lin = nn.utils.parametrizations.weight_norm(lin)
             setattr(self, "lin" + str(l), lin)
         self.softplus = nn.Softplus(beta=100)
         if self.offset_head:
@@ -88,13 +88,13 @@ class ImplicitNet(nn.Module):
             self.last_layer_list = nn.ModuleList()
             for i in range(opt.number_person):
                 head_layer = nn.Sequential(
-                    nn.utils.weight_norm(nn.Linear(256 + 1 + 69 + 64 + dims[0], 256)),
+                    nn.utils.parametrizations.weight_norm(nn.Linear(256 + 1 + 69 + 64 + dims[0], 256)),
                     nn.Softplus(beta=100),
-                    nn.utils.weight_norm(nn.Linear(256, 256)),
+                    nn.utils.parametrizations.weight_norm(nn.Linear(256, 256)),
                     nn.Softplus(beta=100),
-                    nn.utils.weight_norm(nn.Linear(256, 256)),
+                    nn.utils.parametrizations.weight_norm(nn.Linear(256, 256)),
                     nn.Softplus(beta=100),
-                    nn.utils.weight_norm(nn.Linear(256, 256)),
+                    nn.utils.parametrizations.weight_norm(nn.Linear(256, 256)),
                     nn.Softplus(beta=100),
                 )
                 self.head_layer_list.append(head_layer)
@@ -102,7 +102,7 @@ class ImplicitNet(nn.Module):
                 init_val = 1e-6
                 torch.nn.init.constant_(last_layer.bias, 0.0)
                 torch.nn.init.uniform_(last_layer.weight, -init_val, init_val)
-                last_layer = nn.utils.weight_norm(last_layer)
+                last_layer = nn.utils.parametrizations.weight_norm(last_layer)
                 self.last_layer_list.append(last_layer)
         if self.beta_encoding:
             self.betas = betas
@@ -112,7 +112,7 @@ class ImplicitNet(nn.Module):
                 init_val = 1e-5
                 torch.nn.init.constant_(beta_layer.bias, 0.0)
                 torch.nn.init.uniform_(beta_layer.weight, -init_val, init_val)
-                beta_layer = nn.utils.weight_norm(beta_layer)
+                beta_layer = nn.utils.parametrizations.weight_norm(beta_layer)
                 self.beta_layer_list.append(beta_layer)
 
 
@@ -255,7 +255,7 @@ class RenderingNet(nn.Module):
             out_dim = dims[l + 1]
             lin = nn.Linear(dims[l], out_dim)
             if opt.weight_norm:
-                lin = nn.utils.weight_norm(lin)
+                lin = nn.utils.parametrizations.weight_norm(lin)
             setattr(self, "lin" + str(l), lin)
         self.relu = nn.ReLU()
         self.sigmoid = nn.Sigmoid()

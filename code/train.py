@@ -12,6 +12,7 @@ warnings.filterwarnings(
     message=r"The `srun` command is available on your system but is not used\."
 )
 
+
 @hydra.main(config_path="confs", config_name="taichi01_base", version_base=None)
 def main(opt):
     pl.seed_everything(42)
