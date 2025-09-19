@@ -147,19 +147,19 @@ class MultiplyModel(pl.LightningModule):
             # optimze pose with inter-person pose loss within the loop
             if is_pose_depth_opt:
                 cur_opt = opt_pose
-                opt_idx = 1
-                self.toggle_optimizer(opt_pose, opt_idx)
+                # opt_idx = 1
+                # self.toggle_optimizer(opt_pose, opt_idx)
             # optimize pose for frames with unreliable pose
             elif is_delayed_pose_opt:
                 cur_opt = opt_joint
-                opt_idx = 0
-                self.toggle_optimizer(opt_joint, opt_idx)
+                # opt_idx = 0
+                # self.toggle_optimizer(opt_joint, opt_idx)
                 self.freeze_shape_model()
             # jointly optimize pose and shape
             else:
                 cur_opt = opt_joint
-                opt_idx = 0
-                self.toggle_optimizer(opt_joint, opt_idx)
+                # opt_idx = 0
+                # self.toggle_optimizer(opt_joint, opt_idx)
 
         device = inputs["smpl_params"].device
 
@@ -191,6 +191,7 @@ class MultiplyModel(pl.LightningModule):
             targets['rgb'] = targets['edge_rgb']
             if 'edge_sam_mask' in inputs.keys():
                 inputs['sam_mask'] = inputs['edge_sam_mask']
+        self.toggle_optimizer(cur_opt)
         model_outputs = self.model(inputs)
 
         loss_output = self.loss(model_outputs, targets)
@@ -223,7 +224,7 @@ class MultiplyModel(pl.LightningModule):
             sch_joint.step()
             sch_pose.step()
 
-        self.untoggle_optimizer(opt_idx)
+        self.untoggle_optimizer(cur_opt)
         self.unfreeze_shape_model()
 
         return loss_output["loss"]
@@ -488,7 +489,7 @@ class MultiplyModel(pl.LightningModule):
 
 
 
-    def training_epoch_end(self, outputs) -> None:
+    def on_training_epoch_end(self, outputs) -> None:
         # Canonical mesh update every 20 epochs
         if self.current_epoch != 0 and self.current_epoch % 20 == 0:
             for person_id, smpl_server in enumerate(self.model.smpl_server_list):
@@ -518,7 +519,7 @@ class MultiplyModel(pl.LightningModule):
             torch.cuda.empty_cache()
             self.opt_depth()
             torch.cuda.empty_cache()
-        return super().training_epoch_end(outputs)
+        return super().on_training_epoch_end(outputs)
 
     def get_interpenetration_loss(self, vertex_list, face_list):
         num_pixels = 5120
@@ -1123,7 +1124,7 @@ class MultiplyModel(pl.LightningModule):
         cv2.imwrite(f"normal/{self.current_epoch}_person{person_id}.png", normal[:, :, ::-1])
         cv2.imwrite(f"fg_rendering/{self.current_epoch}_person{person_id}.png", fg_rgb[:, :, ::-1])
 
-    def validation_epoch_end(self, outputs) -> None:
+    def on_validation_epoch_end(self, outputs) -> None:
         # import pdb; pdb.set_trace()
         if self.num_person < 2:
             self.validation_epoch_end_person([outputs[0][0]], person_id=-1)
