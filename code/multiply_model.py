@@ -63,6 +63,10 @@ class MultiplyModel(pl.LightningModule):
         self._stepped_joint = False
         self._stepped_pose  = False
 
+        self._validation_outputs = []
+        self.visualisation_output_dir = os.path.join(opt.output_dir, 'visualisations')
+        os.makedirs(self.visualisation_output_dir, exist_ok=True)
+
     def init_params(self, opt):
         # depth end determines whether apply depth & interpenetration loss during or at the end of epochs.
         self.depth_end = opt.model.get('depth_end', False)
@@ -460,11 +464,11 @@ class MultiplyModel(pl.LightningModule):
                     # Apply the reversed 'JET' colormap
                     front_numpy = cv2.applyColorMap(255 - front_numpy, cv2.COLORMAP_JET)
                     gt_numpy = cv2.applyColorMap(255 - gt_numpy, cv2.COLORMAP_JET)
-                    os.makedirs(f"stage_depth_map_pyrender/{self.current_epoch:05d}/{it:05d}/front", exist_ok=True)
-                    os.makedirs(f"stage_depth_map_pyrender/{self.current_epoch:05d}/{it:05d}/gt", exist_ok=True)
-                    cv2.imwrite(os.path.join(f"stage_depth_map_pyrender/{self.current_epoch:05d}/{it:05d}/front",
+                    os.makedirs(f"{self.visualisation_output_dir}/stage_depth_map_pyrender/{self.current_epoch:05d}/{it:05d}/front", exist_ok=True)
+                    os.makedirs(f"{self.visualisation_output_dir}/stage_depth_map_pyrender/{self.current_epoch:05d}/{it:05d}/gt", exist_ok=True)
+                    cv2.imwrite(os.path.join(f"{self.visualisation_output_dir}/stage_depth_map_pyrender/{self.current_epoch:05d}/{it:05d}/front",
                                              f'front_%04d.png' % idx), front_numpy)
-                    cv2.imwrite(os.path.join(f"stage_depth_map_pyrender/{self.current_epoch:05d}/{it:05d}/gt",
+                    cv2.imwrite(os.path.join(f"{self.visualisation_output_dir}/stage_depth_map_pyrender/{self.current_epoch:05d}/{it:05d}/gt",
                                              f'gt_%04d.png' % idx), gt_numpy)
                 valid_mask = valid_mask.flatten()
                 gt_depth_map = gt_depth_map.flatten()[valid_mask]
@@ -685,11 +689,11 @@ class MultiplyModel(pl.LightningModule):
         if self.current_epoch % 50 == 0:
             renderer_instance_numpy = renderer_instance_map_RGB.detach().cpu().numpy().astype(np.uint8)
             gt_instance_numpy = gt_instance_map.detach().cpu().numpy().astype(np.uint8)
-            os.makedirs(f"stage_instance_mask_pyrender/{self.current_epoch:05d}/project", exist_ok=True)
-            os.makedirs(f"stage_instance_mask_pyrender/{self.current_epoch:05d}/gt", exist_ok=True)
-            cv2.imwrite(os.path.join(f"stage_instance_mask_pyrender/{self.current_epoch:05d}/project",
+            os.makedirs(f"{self.visualisation_output_dir}/stage_instance_mask_pyrender/{self.current_epoch:05d}/project", exist_ok=True)
+            os.makedirs(f"{self.visualisation_output_dir}/stage_instance_mask_pyrender/{self.current_epoch:05d}/gt", exist_ok=True)
+            cv2.imwrite(os.path.join(f"{self.visualisation_output_dir}/stage_instance_mask_pyrender/{self.current_epoch:05d}/project",
                                      f'%04d.png' % idx), renderer_instance_numpy[..., :3])
-            cv2.imwrite(os.path.join(f"stage_instance_mask_pyrender/{self.current_epoch:05d}/gt",
+            cv2.imwrite(os.path.join(f"{self.visualisation_output_dir}/stage_instance_mask_pyrender/{self.current_epoch:05d}/gt",
                                      f'%04d.png' % idx), gt_instance_numpy[...,:3])
         # (H, W)
         # should not have more than one label in one pixel
@@ -719,11 +723,11 @@ class MultiplyModel(pl.LightningModule):
             # Apply the reversed 'JET' colormap
             front_numpy = cv2.applyColorMap(255 - front_numpy, cv2.COLORMAP_JET)
             gt_numpy = cv2.applyColorMap(255 - gt_numpy, cv2.COLORMAP_JET)
-            os.makedirs(f"stage_depth_map_pyrender/{self.current_epoch:05d}/front", exist_ok=True)
-            os.makedirs(f"stage_depth_map_pyrender/{self.current_epoch:05d}/gt", exist_ok=True)
-            cv2.imwrite(os.path.join(f"stage_depth_map_pyrender/{self.current_epoch:05d}/front",
+            os.makedirs(f"{self.visualisation_output_dir}/stage_depth_map_pyrender/{self.current_epoch:05d}/front", exist_ok=True)
+            os.makedirs(f"{self.visualisation_output_dir}/stage_depth_map_pyrender/{self.current_epoch:05d}/gt", exist_ok=True)
+            cv2.imwrite(os.path.join(f"{self.visualisation_output_dir}/stage_depth_map_pyrender/{self.current_epoch:05d}/front",
                                      f'front_%04d.png' % idx), front_numpy)
-            cv2.imwrite(os.path.join(f"stage_depth_map_pyrender/{self.current_epoch:05d}/gt",
+            cv2.imwrite(os.path.join(f"{self.visualisation_output_dir}/stage_depth_map_pyrender/{self.current_epoch:05d}/gt",
                                      f'gt_%04d.png' % idx), gt_numpy)
         valid_mask = valid_mask.flatten()
         gt_depth_map = gt_depth_map.flatten()[valid_mask]
@@ -757,10 +761,10 @@ class MultiplyModel(pl.LightningModule):
     def get_instance_mask(self):
         print("start get SMPL instance mask")
         self.model.eval()
-        os.makedirs(f"stage_mask/{self.current_epoch:05d}/all", exist_ok=True)
-        os.makedirs(f"stage_rendering/{self.current_epoch:05d}/all", exist_ok=True)
-        os.makedirs(f"stage_fg_rendering/{self.current_epoch:05d}/all", exist_ok=True)
-        os.makedirs(f"stage_normal/{self.current_epoch:05d}/all", exist_ok=True)
+        os.makedirs(f"{self.visualisation_output_dir}/stage_mask/{self.current_epoch:05d}/all", exist_ok=True)
+        os.makedirs(f"{self.visualisation_output_dir}/stage_rendering/{self.current_epoch:05d}/all", exist_ok=True)
+        os.makedirs(f"{self.visualisation_output_dir}/stage_fg_rendering/{self.current_epoch:05d}/all", exist_ok=True)
+        os.makedirs(f"{self.visualisation_output_dir}/stage_normal/{self.current_epoch:05d}/all", exist_ok=True)
         testset = create_dataset(self.opt.dataset.test)
         keypoint_list = [[] for _ in range(len(self.model.smpl_server_list))]
         all_person_smpl_mask_list =[]
@@ -915,8 +919,8 @@ class MultiplyModel(pl.LightningModule):
                 all_red_image = np.ones((instance_mask.shape[0], instance_mask.shape[1], 3)) * np.array([255, 0, 0]).reshape(1, 1, 3)
                 instance_mask = instance_mask[:, :, np.newaxis]
                 output_img_person_1 = (all_red_image * instance_mask + input_img * (1 - instance_mask)).astype(np.uint8)
-                os.makedirs(f"stage_depth_instance_mask/{self.current_epoch:05d}", exist_ok=True)
-                cv2.imwrite(os.path.join(f"stage_depth_instance_mask/{self.current_epoch:05d}",
+                os.makedirs(f"{self.visualisation_output_dir}/stage_depth_instance_mask/{self.current_epoch:05d}", exist_ok=True)
+                cv2.imwrite(os.path.join(f"{self.visualisation_output_dir}/stage_depth_instance_mask/{self.current_epoch:05d}",
                                          f'{map_id}_smpl_render_%04d.png' % idx), output_img_person_1[:, :, ::-1])
             all_instance_mask_depth = np.stack(instance_mask_list, axis=0)
             all_instance_mask_depth_list.append(all_instance_mask_depth)
@@ -939,17 +943,17 @@ class MultiplyModel(pl.LightningModule):
 
                 # Apply the reversed 'JET' colormap
                 depth_map_processed = cv2.applyColorMap(255 - depth_map_processed, cv2.COLORMAP_JET)
-                os.makedirs(f"stage_depth_map/{self.current_epoch:05d}", exist_ok=True)
-                cv2.imwrite(os.path.join(f"stage_depth_map/{self.current_epoch:05d}",
+                os.makedirs(f"{self.visualisation_output_dir}/stage_depth_map/{self.current_epoch:05d}", exist_ok=True)
+                cv2.imwrite(os.path.join(f"{self.visualisation_output_dir}/stage_depth_map/{self.current_epoch:05d}",
                                          f'{map_id}_smpl_render_%04d.png' % idx), depth_map_processed)
 
         all_instance_mask_depth_list = np.array(all_instance_mask_depth_list)
         print("all_instance_mask_depth_list.shape ", all_instance_mask_depth_list.shape)
         keypoint_list = np.array(keypoint_list)
         keypoint_list = keypoint_list.transpose(1, 0, 2, 3)
-        os.makedirs(f"stage_instance_mask/{self.current_epoch:05d}", exist_ok=True)
-        np.save(f'stage_instance_mask/{self.current_epoch:05d}/all_person_smpl_mask.npy', all_instance_mask_depth_list)
-        np.save(f'stage_instance_mask/{self.current_epoch:05d}/2d_keypoint.npy', keypoint_list)
+        os.makedirs(f"{self.visualisation_output_dir}/stage_instance_mask/{self.current_epoch:05d}", exist_ok=True)
+        np.save(f'{self.visualisation_output_dir}/stage_instance_mask/{self.current_epoch:05d}/all_person_smpl_mask.npy', all_instance_mask_depth_list)
+        np.save(f'{self.visualisation_output_dir}/stage_instance_mask/{self.current_epoch:05d}/2d_keypoint.npy', keypoint_list)
         # shape (160, 2, 27, 2)
         print("keypoint_list.shape ", keypoint_list.shape)
         self.model.train()
@@ -1002,8 +1006,7 @@ class MultiplyModel(pl.LightningModule):
             for i in range(self.num_person):
                 outputs.append(self.validation_step_single_person(batch, id=i))
 
-        return outputs
-
+        self._validation_outputs.append(outputs)
 
     def validation_step_single_person(self, batch, id):
 
@@ -1064,7 +1067,7 @@ class MultiplyModel(pl.LightningModule):
                                                                                        targets["img_size"][1]))
 
         res = []
-        for s in split:
+        for s in tqdm(split, desc="Validation step"):
             if id==-1:
                 out = self.model(s)
             else:
@@ -1092,9 +1095,6 @@ class MultiplyModel(pl.LightningModule):
             **targets,
         })
         return output
-
-    def validation_step_end(self, batch_parts):
-        return batch_parts
 
     def validation_epoch_end_person(self, outputs, person_id):
         img_size = outputs[0]["img_size"]
@@ -1125,20 +1125,23 @@ class MultiplyModel(pl.LightningModule):
 
         normal = (normal * 255).astype(np.uint8)
 
-        os.makedirs("rendering", exist_ok=True)
-        os.makedirs("normal", exist_ok=True)
-        os.makedirs('fg_rendering', exist_ok=True)
+        os.makedirs(f"{self.visualisation_output_dir}/rendering", exist_ok=True)
+        os.makedirs(f"{self.visualisation_output_dir}/normal", exist_ok=True)
+        os.makedirs(f"{self.visualisation_output_dir}/fg_rendering", exist_ok=True)
 
         canonical_mesh_list = outputs[0]['canonical_weighted']
         for i, canonical_mesh in enumerate(canonical_mesh_list):
-            canonical_mesh.export(f"rendering/{self.current_epoch}_{i}.ply")
+            canonical_mesh.export(f"{self.visualisation_output_dir}/rendering/{self.current_epoch}_{i}.ply")
 
-        cv2.imwrite(f"rendering/{self.current_epoch}_person{person_id}.png", rgb[:, :, ::-1])
-        cv2.imwrite(f"normal/{self.current_epoch}_person{person_id}.png", normal[:, :, ::-1])
-        cv2.imwrite(f"fg_rendering/{self.current_epoch}_person{person_id}.png", fg_rgb[:, :, ::-1])
+        cv2.imwrite(f"{self.visualisation_output_dir}/rendering/{self.current_epoch}_person{person_id}.png", rgb[:, :, ::-1])
+        cv2.imwrite(f"{self.visualisation_output_dir}/normal/{self.current_epoch}_person{person_id}.png", normal[:, :, ::-1])
+        cv2.imwrite(f"{self.visualisation_output_dir}/fg_rendering/{self.current_epoch}_person{person_id}.png", fg_rgb[:, :, ::-1])
 
-    def on_validation_epoch_end(self, outputs) -> None:
+    def on_validation_epoch_end(self) -> None:
         # import pdb; pdb.set_trace()
+        outputs = self._validation_outputs
+        self._validation_outputs = []
+
         if self.num_person < 2:
             self.validation_epoch_end_person([outputs[0][0]], person_id=-1)
         else:
@@ -1192,16 +1195,16 @@ class MultiplyModel(pl.LightningModule):
                                                                                   person_id)
                 self.model.deformer_list[person_id].K = 1
                 mesh_deformed = trimesh.Trimesh(vertices=verts_deformed, faces=mesh_canonical.faces, process=False)
-                os.makedirs(f"test_mesh_res4/{person_id}", exist_ok=True)
-                mesh_canonical.export(f"test_mesh_res4/{person_id}/{int(idx.cpu().numpy()):04d}_canonical.ply")
-                mesh_deformed.export(f"test_mesh_res4/{person_id}/{int(idx.cpu().numpy()):04d}_deformed.ply")
+                os.makedirs(f"{self.visualisation_output_dir}/test_mesh_res4/{person_id}", exist_ok=True)
+                mesh_canonical.export(f"{self.visualisation_output_dir}/test_mesh_res4/{person_id}/{int(idx.cpu().numpy()):04d}_canonical.ply")
+                mesh_deformed.export(f"{self.visualisation_output_dir}/test_mesh_res4/{person_id}/{int(idx.cpu().numpy()):04d}_deformed.ply")
 
     def test_step_each_person(self, batch, id):
-        os.makedirs(f"test_mask/{id}", exist_ok=True)
-        os.makedirs(f"test_rendering/{id}", exist_ok=True)
-        os.makedirs(f"test_fg_rendering/{id}", exist_ok=True)
-        os.makedirs(f"test_normal/{id}", exist_ok=True)
-        os.makedirs(f"test_mesh/{id}", exist_ok=True)
+        os.makedirs(f"{self.visualisation_output_dir}/test_mask/{id}", exist_ok=True)
+        os.makedirs(f"{self.visualisation_output_dir}/test_rendering/{id}", exist_ok=True)
+        os.makedirs(f"{self.visualisation_output_dir}/test_fg_rendering/{id}", exist_ok=True)
+        os.makedirs(f"{self.visualisation_output_dir}/test_normal/{id}", exist_ok=True)
+        os.makedirs(f"{self.visualisation_output_dir}/test_mesh/{id}", exist_ok=True)
 
         inputs, targets, pixel_per_batch, total_pixels, idx = batch
         num_splits = (total_pixels + pixel_per_batch -
@@ -1244,9 +1247,9 @@ class MultiplyModel(pl.LightningModule):
                                                                                   person_id)
                 self.model.deformer_list[person_id].K = 1
                 mesh_deformed = trimesh.Trimesh(vertices=verts_deformed, faces=mesh_canonical.faces, process=False)
-                os.makedirs(f"test_mesh/{person_id}", exist_ok=True)
-                mesh_canonical.export(f"test_mesh/{person_id}/{int(idx.cpu().numpy()):04d}_canonical.ply")
-                mesh_deformed.export(f"test_mesh/{person_id}/{int(idx.cpu().numpy()):04d}_deformed.ply")
+                os.makedirs(f"{self.visualisation_output_dir}/test_mesh/{person_id}", exist_ok=True)
+                mesh_canonical.export(f"{self.visualisation_output_dir}/test_mesh/{person_id}/{int(idx.cpu().numpy()):04d}_canonical.ply")
+                mesh_deformed.export(f"{self.visualisation_output_dir}/test_mesh/{person_id}/{int(idx.cpu().numpy()):04d}_deformed.ply")
 
         for i in range(num_splits):
             indices = list(range(i * pixel_per_batch,
@@ -1309,8 +1312,8 @@ class MultiplyModel(pl.LightningModule):
             instance_mask = instance_mask.reshape(*img_size, -1)
             for i in range(instance_mask.shape[2]):
                 instance_mask_i = instance_mask[:, :, i]
-                os.makedirs(f"test_instance_mask/{i}", exist_ok=True)
-                cv2.imwrite(f"test_instance_mask/{i}/{int(idx.cpu().numpy()):04d}.png", instance_mask_i.cpu().numpy() * 255)
+                os.makedirs(f"{self.visualisation_output_dir}/test_instance_mask/{i}", exist_ok=True)
+                cv2.imwrite(f"{self.visualisation_output_dir}/test_instance_mask/{i}/{int(idx.cpu().numpy()):04d}.png", instance_mask_i.cpu().numpy() * 255)
 
 
         if results[0]['rgb'] is not None:
@@ -1333,18 +1336,18 @@ class MultiplyModel(pl.LightningModule):
 
         normal = (normal * 255).astype(np.uint8)
 
-        cv2.imwrite(f"test_mask/{id}/{int(idx.cpu().numpy()):04d}.png", pred_mask.cpu().numpy() * 255)
-        cv2.imwrite(f"test_rendering/{id}/{int(idx.cpu().numpy()):04d}.png", rgb[:, :, ::-1])
-        cv2.imwrite(f"test_normal/{id}/{int(idx.cpu().numpy()):04d}.png", normal[:, :, ::-1])
-        cv2.imwrite(f"test_fg_rendering/{id}/{int(idx.cpu().numpy()):04d}.png", fg_rgb[:, :, ::-1])
+        cv2.imwrite(f"{self.visualisation_output_dir}/test_mask/{id}/{int(idx.cpu().numpy()):04d}.png", pred_mask.cpu().numpy() * 255)
+        cv2.imwrite(f"{self.visualisation_output_dir}/test_rendering/{id}/{int(idx.cpu().numpy()):04d}.png", rgb[:, :, ::-1])
+        cv2.imwrite(f"{self.visualisation_output_dir}/test_normal/{id}/{int(idx.cpu().numpy()):04d}.png", normal[:, :, ::-1])
+        cv2.imwrite(f"{self.visualisation_output_dir}/test_fg_rendering/{id}/{int(idx.cpu().numpy()):04d}.png", fg_rgb[:, :, ::-1])
 
     def test_step_each_person_novel(self, batch, id, novel_view):
         novel_view = novel_view.item()
-        os.makedirs(f"test_mask_{novel_view}/{id}", exist_ok=True)
-        os.makedirs(f"test_rendering_{novel_view}/{id}", exist_ok=True)
-        os.makedirs(f"test_fg_rendering_{novel_view}/{id}", exist_ok=True)
-        os.makedirs(f"test_normal_{novel_view}/{id}", exist_ok=True)
-        os.makedirs(f"test_mesh_{novel_view}/{id}", exist_ok=True)
+        os.makedirs(f"{self.visualisation_output_dir}/test_mask_{novel_view}/{id}", exist_ok=True)
+        os.makedirs(f"{self.visualisation_output_dir}/test_rendering_{novel_view}/{id}", exist_ok=True)
+        os.makedirs(f"{self.visualisation_output_dir}/test_fg_rendering_{novel_view}/{id}", exist_ok=True)
+        os.makedirs(f"{self.visualisation_output_dir}/test_normal_{novel_view}/{id}", exist_ok=True)
+        os.makedirs(f"{self.visualisation_output_dir}/test_mesh_{novel_view}/{id}", exist_ok=True)
 
         inputs, targets, pixel_per_batch, total_pixels, idx = batch
         num_splits = (total_pixels + pixel_per_batch -
@@ -1413,17 +1416,17 @@ class MultiplyModel(pl.LightningModule):
 
         normal = (normal * 255).astype(np.uint8)
 
-        cv2.imwrite(f"test_mask_{novel_view}/{id}/{int(idx.cpu().numpy()):04d}.png", pred_mask.cpu().numpy() * 255)
-        cv2.imwrite(f"test_rendering_{novel_view}/{id}/{int(idx.cpu().numpy()):04d}.png", rgb[:, :, ::-1])
-        cv2.imwrite(f"test_normal_{novel_view}/{id}/{int(idx.cpu().numpy()):04d}.png", normal[:, :, ::-1])
-        cv2.imwrite(f"test_fg_rendering_{novel_view}/{id}/{int(idx.cpu().numpy()):04d}.png", fg_rgb[:, :, ::-1])
+        cv2.imwrite(f"{self.visualisation_output_dir}/test_mask_{novel_view}/{id}/{int(idx.cpu().numpy()):04d}.png", pred_mask.cpu().numpy() * 255)
+        cv2.imwrite(f"{self.visualisation_output_dir}/test_rendering_{novel_view}/{id}/{int(idx.cpu().numpy()):04d}.png", rgb[:, :, ::-1])
+        cv2.imwrite(f"{self.visualisation_output_dir}/test_normal_{novel_view}/{id}/{int(idx.cpu().numpy()):04d}.png", normal[:, :, ::-1])
+        cv2.imwrite(f"{self.visualisation_output_dir}/test_fg_rendering_{novel_view}/{id}/{int(idx.cpu().numpy()):04d}.png", fg_rgb[:, :, ::-1])
 
     def test_step_each_person_canonical(self, batch, id, prefix='canonical'):
-        os.makedirs(f"test_mask_{prefix}/{id}", exist_ok=True)
-        os.makedirs(f"test_rendering_{prefix}/{id}", exist_ok=True)
-        os.makedirs(f"test_fg_rendering_{prefix}/{id}", exist_ok=True)
-        os.makedirs(f"test_normal_{prefix}/{id}", exist_ok=True)
-        os.makedirs(f"test_mesh_{prefix}/{id}", exist_ok=True)
+        os.makedirs(f"{self.visualisation_output_dir}/test_mask_{prefix}/{id}", exist_ok=True)
+        os.makedirs(f"{self.visualisation_output_dir}/test_rendering_{prefix}/{id}", exist_ok=True)
+        os.makedirs(f"{self.visualisation_output_dir}/test_fg_rendering_{prefix}/{id}", exist_ok=True)
+        os.makedirs(f"{self.visualisation_output_dir}/test_normal_{prefix}/{id}", exist_ok=True)
+        os.makedirs(f"{self.visualisation_output_dir}/test_mesh_{prefix}/{id}", exist_ok=True)
 
         inputs, targets, pixel_per_batch, total_pixels, idx = batch
         num_splits = (total_pixels + pixel_per_batch -
@@ -1494,8 +1497,8 @@ class MultiplyModel(pl.LightningModule):
             instance_mask = instance_mask.reshape(*img_size, -1)
             for i in range(instance_mask.shape[2]):
                 instance_mask_i = instance_mask[:, :, i]
-                os.makedirs(f"test_instance_mask_{prefix}/{i}", exist_ok=True)
-                cv2.imwrite(f"test_instance_mask_{prefix}/{i}/{int(idx.cpu().numpy()):04d}.png", instance_mask_i.cpu().numpy() * 255)
+                os.makedirs(f"{self.visualisation_output_dir}/test_instance_mask_{prefix}/{i}", exist_ok=True)
+                cv2.imwrite(f"{self.visualisation_output_dir}/test_instance_mask_{prefix}/{i}/{int(idx.cpu().numpy()):04d}.png", instance_mask_i.cpu().numpy() * 255)
 
 
         if results[0]['rgb'] is not None:
@@ -1518,17 +1521,17 @@ class MultiplyModel(pl.LightningModule):
 
         normal = (normal * 255).astype(np.uint8)
 
-        cv2.imwrite(f"test_mask_{prefix}/{id}/{int(idx.cpu().numpy()):04d}.png", pred_mask.cpu().numpy() * 255)
-        cv2.imwrite(f"test_rendering_{prefix}/{id}/{int(idx.cpu().numpy()):04d}.png", rgb[:, :, ::-1])
-        cv2.imwrite(f"test_normal_{prefix}/{id}/{int(idx.cpu().numpy()):04d}.png", normal[:, :, ::-1])
-        cv2.imwrite(f"test_fg_rendering_{prefix}/{id}/{int(idx.cpu().numpy()):04d}.png", fg_rgb[:, :, ::-1])
+        cv2.imwrite(f"{self.visualisation_output_dir}/test_mask_{prefix}/{id}/{int(idx.cpu().numpy()):04d}.png", pred_mask.cpu().numpy() * 255)
+        cv2.imwrite(f"{self.visualisation_output_dir}/test_rendering_{prefix}/{id}/{int(idx.cpu().numpy()):04d}.png", rgb[:, :, ::-1])
+        cv2.imwrite(f"{self.visualisation_output_dir}/test_normal_{prefix}/{id}/{int(idx.cpu().numpy()):04d}.png", normal[:, :, ::-1])
+        cv2.imwrite(f"{self.visualisation_output_dir}/test_fg_rendering_{prefix}/{id}/{int(idx.cpu().numpy()):04d}.png", fg_rgb[:, :, ::-1])
 
     def test_step_each_person_denoisy(self, batch, id, prefix='denoisy'):
-        os.makedirs(f"test_mask_{prefix}/{id}", exist_ok=True)
-        os.makedirs(f"test_rendering_{prefix}/{id}", exist_ok=True)
-        os.makedirs(f"test_fg_rendering_{prefix}/{id}", exist_ok=True)
-        os.makedirs(f"test_normal_{prefix}/{id}", exist_ok=True)
-        os.makedirs(f"test_mesh_{prefix}/{id}", exist_ok=True)
+        os.makedirs(f"{self.visualisation_output_dir}/test_mask_{prefix}/{id}", exist_ok=True)
+        os.makedirs(f"{self.visualisation_output_dir}/test_rendering_{prefix}/{id}", exist_ok=True)
+        os.makedirs(f"{self.visualisation_output_dir}/test_fg_rendering_{prefix}/{id}", exist_ok=True)
+        os.makedirs(f"{self.visualisation_output_dir}/test_normal_{prefix}/{id}", exist_ok=True)
+        os.makedirs(f"{self.visualisation_output_dir}/test_mesh_{prefix}/{id}", exist_ok=True)
 
         inputs, targets, pixel_per_batch, total_pixels, idx = batch
         num_splits = (total_pixels + pixel_per_batch -
@@ -1608,8 +1611,8 @@ class MultiplyModel(pl.LightningModule):
             instance_mask = instance_mask.reshape(*img_size, -1)
             for i in range(instance_mask.shape[2]):
                 instance_mask_i = instance_mask[:, :, i]
-                os.makedirs(f"test_instance_mask_{prefix}/{i}", exist_ok=True)
-                cv2.imwrite(f"test_instance_mask_{prefix}/{i}/{int(idx.cpu().numpy()):04d}.png", instance_mask_i.cpu().numpy() * 255)
+                os.makedirs(f"{self.visualisation_output_dir}/test_instance_mask_{prefix}/{i}", exist_ok=True)
+                cv2.imwrite(f"{self.visualisation_output_dir}/test_instance_mask_{prefix}/{i}/{int(idx.cpu().numpy()):04d}.png", instance_mask_i.cpu().numpy() * 255)
 
 
         if results[0]['rgb'] is not None:
@@ -1632,10 +1635,10 @@ class MultiplyModel(pl.LightningModule):
 
         normal = (normal * 255).astype(np.uint8)
 
-        cv2.imwrite(f"test_mask_{prefix}/{id}/{int(idx.cpu().numpy()):04d}.png", pred_mask.cpu().numpy() * 255)
-        cv2.imwrite(f"test_rendering_{prefix}/{id}/{int(idx.cpu().numpy()):04d}.png", rgb[:, :, ::-1])
-        cv2.imwrite(f"test_normal_{prefix}/{id}/{int(idx.cpu().numpy()):04d}.png", normal[:, :, ::-1])
-        cv2.imwrite(f"test_fg_rendering_{prefix}/{id}/{int(idx.cpu().numpy()):04d}.png", fg_rgb[:, :, ::-1])
+        cv2.imwrite(f"{self.visualisation_output_dir}/test_mask_{prefix}/{id}/{int(idx.cpu().numpy()):04d}.png", pred_mask.cpu().numpy() * 255)
+        cv2.imwrite(f"{self.visualisation_output_dir}/test_rendering_{prefix}/{id}/{int(idx.cpu().numpy()):04d}.png", rgb[:, :, ::-1])
+        cv2.imwrite(f"{self.visualisation_output_dir}/test_normal_{prefix}/{id}/{int(idx.cpu().numpy()):04d}.png", normal[:, :, ::-1])
+        cv2.imwrite(f"{self.visualisation_output_dir}/test_fg_rendering_{prefix}/{id}/{int(idx.cpu().numpy()):04d}.png", fg_rgb[:, :, ::-1])
 
     def test_step(self, batch, *args, **kwargs):
         self.model.eval()

@@ -17,6 +17,10 @@ warnings.filterwarnings(
 def main(opt):
     pl.seed_everything(42)
 
+    # clean checkpoint directory -> remove old checkpoints
+    ckpt_dir = Path(opt.output_dir) / "checkpoints"
+    ckpt_dir.mkdir(parents=True, exist_ok=True)
+
     checkpoint_callback = pl.callbacks.ModelCheckpoint(
         dirpath=Path(opt.output_dir) / "checkpoints",
         filename="{epoch:04d}-{loss}",
@@ -48,7 +52,7 @@ def main(opt):
     validset = create_dataset(opt.dataset.valid)
 
     if opt.model.is_continue == True:
-        checkpoint = sorted(glob.glob("checkpoints/epoch=*.ckpt"))[-1]
+        checkpoint = ckpt_dir / "last.ckpt"
         trainer.fit(model, trainset, validset, ckpt_path=checkpoint)
     else: 
         trainer.fit(model, trainset, validset)
