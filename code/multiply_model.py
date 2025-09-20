@@ -1251,7 +1251,7 @@ class MultiplyModel(pl.LightningModule):
                 mesh_canonical.export(f"{self.visualisation_output_dir}/test_mesh/{person_id}/{int(idx.cpu().numpy()):04d}_canonical.ply")
                 mesh_deformed.export(f"{self.visualisation_output_dir}/test_mesh/{person_id}/{int(idx.cpu().numpy()):04d}_deformed.ply")
 
-        for i in range(num_splits):
+        for i in tqdm(range(num_splits), desc="Rendering single test image"):
             indices = list(range(i * pixel_per_batch,
                                  min((i + 1) * pixel_per_batch, total_pixels)))
             batch_inputs = {"uv": inputs["uv"][:, indices],

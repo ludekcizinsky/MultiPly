@@ -17,7 +17,6 @@ warnings.filterwarnings(
 def main(opt):
     pl.seed_everything(42)
 
-    # clean checkpoint directory -> remove old checkpoints
     ckpt_dir = Path(opt.output_dir) / "checkpoints"
     ckpt_dir.mkdir(parents=True, exist_ok=True)
 
