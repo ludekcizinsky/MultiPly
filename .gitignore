@@ -32,3 +32,5 @@ code/dist/
 code/UNKNOWN.egg-info/
 code/lib/cuda/
 /preprocessing/trace_results
+
+dev.sh
