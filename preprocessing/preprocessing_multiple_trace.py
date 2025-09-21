@@ -87,7 +87,7 @@ def main(args):
     max_human_sphere_all = 0
     device = torch.device("cuda:0")
     seq = args.seq
-    DIR = './raw_data'
+    DIR = f"{args.out_dir}/raw_data"
     img_dir = f'{DIR}/{seq}/frames'   
     trace_file_dir = f'{DIR}/{seq}/trace'
     if args.source == 'hi4d':
@@ -625,6 +625,8 @@ if __name__ == '__main__':
     parser.add_argument('--source', type=str, default='custom', help="custom video or dataset video")
     # sequence name
     parser.add_argument('--seq', type=str)
+    # output directory
+    parser.add_argument('--out_dir', type=str, default='/scratch/izar/cizinsky/multiply-output/preprocessing')
     # mode
     parser.add_argument('--mode', type=str, help="mask mode or refine mode: mask or refine or final")
     # scale factor for the input image

@@ -1,39 +1,44 @@
-# parameter setup
-folder_path="/media/ubuntu/hdd/RGB-PINA/preprocessing" # absolute path of preprocessing folder
-source="custom" # "custom" if use custom data
-seq="piggy19_cam4" # name of the sequence
-seq_path="/home/ubuntu/Downloads/$seq\.mp4" # path to the seq
-number=2 # number of people
-time_start="00:00:00" # start time of the sequence
-time_duration="00:00:15" # duration of the sequence
+#!/bin/bash
+set -e
 
-source /media/ubuntu/hdd/anaconda3/etc/profile.d/conda.sh # load conda (find your conda path and replace it here)
-# environment setup (can be same if you installed all the packages in the same environment, or different if you installed them in different environments)
-trace_env="smoothnet-env"
+# parameter setup
+folder_path="/scratch/izar/cizinsky/multiply-output/preprocessing" # absolute path of preprocessing folder
+source="custom" # "custom" if use custom data
+seq="modric_vs_ribberi" # name of the sequence
+seq_path="/home/cizinsky/soccer_net/clips/$seq.mp4" # path to the seq
+number=2 # number of people
+n_frames=78 # number of frames to process
+rm -rf ~/.cache/torch/kernels/* # remove cached torch kernels to avoid this weird error saying Torch.prod produces RuntimeError: CUDA driver error: invalid
+
+source /home/cizinsky/miniconda3/etc/profile.d/conda.sh
+module load gcc cuda/11.8 ffmpeg
+trace_env="trace"
 vitpose_env="vitpose"
-aitviewer_env="aitviewer"
-multiply_env="v2a_global"
+aitviewer_env="aitv"
+multiply_env="multiply"
 cd $folder_path
 
-# run ROMP to get initial SMPL parameters
-echo "Running Trace"
+echo "---- Extracting frames from the video"
+mkdir $folder_path/raw_data/$seq
+mkdir $folder_path/raw_data/$seq/frames
+ffmpeg -i "$seq_path" -vsync 0 -vframes $n_frames "$folder_path/raw_data/$seq/frames/%04d.png"
+
+echo "---- Running Trace"
 conda activate $trace_env
-mkdir ./raw_data/$seq
-mkdir ./raw_data/$seq/$seq
-ffmpeg -i $seq_path -ss $time_start -t $time_duration -vsync 0 ./raw_data/$seq/$seq/%04d.png 
+scene_dir=$folder_path/trace_results/$seq
+mkdir -p $scene_dir
+trace2 -i $folder_path/raw_data/$seq/frames --subject_num=$number --results_save_dir=$scene_dir --save_video --time2forget=40
 
-# estimate the SMPL parameter and tracking with trace (for visualization use --show_tracking)
-trace2 -i $folder_path/raw_data/$seq/$seq  --subject_num=$number --results_save_dir=./trace_results/ --save_video --time2forget=40
-mv ./raw_data/$seq/$seq ./raw_data/$seq/frames
+echo "---- Reformatting Trace output"
+cd /home/cizinsky/MultiPly/preprocessing
+conda deactivate && conda activate $aitviewer_env
+python reformat_trace_output.py --seq $seq --output_folder $folder_path
 
-echo "reformate the data"
-conda activate $aitviewer_env
-python ../ait_viewer_vis/aitcamera.py --seq $seq --headless
-
-# obtain the projected masks through estimated perspective camera
-echo "Getting projected SMPL masks"
-conda activate $multiply_env
+echo "---- Getting projected SMPL masks"
+conda deactivate && conda activate $multiply_env
 python preprocessing_multiple_trace.py --source custom --seq $seq --mode mask
+
+exit 0
 
 # run OpenPose to get 2D keypoints
 # echo "Running OpenPose"
