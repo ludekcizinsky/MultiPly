@@ -4,10 +4,9 @@ set -e
 # parameter setup
 folder_path="/scratch/izar/cizinsky/multiply-output/preprocessing" # absolute path of preprocessing folder
 source="custom" # "custom" if use custom data
-seq="modric_vs_ribberi" # name of the sequence
-seq_path="/home/cizinsky/soccer_net/clips/$seq.mp4" # path to the seq
+seq="football_high_res" # name of the sequence
+seq_path="/home/cizinsky/pexels/$seq.mp4" # path to the seq
 number=2 # number of people
-n_frames=78 # number of frames to process
 rm -rf ~/.cache/torch/kernels/* # remove cached torch kernels to avoid this weird error saying Torch.prod produces RuntimeError: CUDA driver error: invalid
 
 source /home/cizinsky/miniconda3/etc/profile.d/conda.sh
@@ -21,7 +20,10 @@ cd $folder_path
 echo "---- Extracting frames from the video"
 mkdir $folder_path/raw_data/$seq
 mkdir $folder_path/raw_data/$seq/frames
-ffmpeg -i "$seq_path" -vsync 0 -vframes $n_frames "$folder_path/raw_data/$seq/frames/%04d.png"
+ffmpeg -i "$seq_path" \
+  -vf "select='between(n\,80\,280)'" -vsync vfr \
+  -start_number 80 \
+  "$folder_path/raw_data/$seq/frames/%04d.png"
 
 echo "---- Running Trace"
 conda activate $trace_env
