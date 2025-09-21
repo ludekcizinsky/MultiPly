@@ -13,7 +13,7 @@ warnings.filterwarnings(
 )
 
 
-@hydra.main(config_path="confs", config_name="taichi01_base", version_base=None)
+@hydra.main(config_path="confs", config_name="football_base", version_base=None)
 def main(opt):
     pl.seed_everything(42)
 

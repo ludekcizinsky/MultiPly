@@ -38,7 +38,7 @@ class MultiplyModel(pl.LightningModule):
         self.start_frame = opt.dataset.train.start_frame
         self.end_frame = opt.dataset.train.end_frame
         self.training_indices = list(range(self.start_frame, self.end_frame))
-        assert len(self.training_indices) == self.num_training_frames
+        assert len(self.training_indices) == self.num_training_frames, f"The length of training indices {len(self.training_indices)} does not match num_training_frames {self.num_training_frames}"
         self.opt_smpl = True
         self.training_modules = ["model"]
         self.num_person = opt.dataset.train.num_person
