@@ -13,7 +13,7 @@ rm -rf ~/.cache/torch/kernels/* # remove cached torch kernels to avoid this weir
 source /home/cizinsky/miniconda3/etc/profile.d/conda.sh
 module load gcc cuda/11.8 ffmpeg
 trace_env="trace"
-vitpose_env="vitpose"
+vitpose_env="vitpose_legacy"
 aitviewer_env="aitv"
 multiply_env="multiply"
 cd $folder_path
@@ -38,30 +38,23 @@ echo "---- Getting projected SMPL masks"
 conda deactivate && conda activate $multiply_env
 python preprocessing_multiple_trace.py --source custom --seq $seq --mode mask
 
-exit 0
+echo "---- Running VitPose to get 2D keypoints"
+conda deactivate && conda activate $vitpose_env
+python vitpose_trace.py \
+  --pose_checkpoint /scratch/izar/cizinsky/pretrained/vitpose-h-multi-coco.pth \
+  --img-root $folder_path/raw_data/$seq/frames \
+  --kpt-thr 0.3
 
-# run OpenPose to get 2D keypoints
-# echo "Running OpenPose"
-# python run_openpose_multiple_trace.py --openpose_dir /media/ubuntu/hdd/openpose --seq $seq
-
-# run vitpose to get 2D keypoints
-conda activate $vitpose_env
-python ./vitpose_trace.py --img-root $folder_path/raw_data/$seq/frames --kpt-thr 0.3
-conda activate $multiply_env
-
-# offline refine poses
-echo "Refining poses offline"
+echo "---- Refining poses offline"
+conda deactivate && conda activate $multiply_env
 python preprocessing_multiple_trace.py --source custom --seq $seq --mode refine --vitpose
-# optional openpose refine
-# python preprocessing_multiple_trace.py --source custom --seq $seq --mode refine --vitpose --openpose
 
-# scale images and center the human in 3D space
-echo "Scaling images and centering human in 3D space"
+echo "---- Scaling images and centering human in 3D space"
+conda deactivate && conda activate $multiply_env
 python preprocessing_multiple_trace.py --source custom --seq $seq --mode final --scale_factor 2
 
-# normalize cameras such that all cameras are within the sphere of radius 3
-echo "Normalizing cameras"
-python normalize_cameras_trace.py --input_cameras_file ../data/$seq/cameras.npz \
-                            --output_cameras_file ../data/$seq/cameras_normalize.npz \
-                            --max_human_sphere_file ../data/$seq/max_human_sphere.npy
-
+echo "--- Normalize cameras such that all cameras are within the sphere of radius 3"
+conda deactivate && conda activate $multiply_env
+python normalize_cameras_trace.py --input_cameras_file $folder_path/data/$seq/cameras.npz \
+                            --output_cameras_file $folder_path/data/$seq/cameras_normalize.npz \
+                            --max_human_sphere_file $folder_path/data/$seq/max_human_sphere.npy

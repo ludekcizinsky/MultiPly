@@ -16,6 +16,40 @@ from scipy.spatial.transform import Rotation as R
 from scipy.spatial.transform import RotationSpline
 from rotation import axis_to_rot6D, rot6D_to_axis
 
+
+from smplx.lbs import blend_shapes, vertices2joints
+
+def get_T_hip_from_smpl(smpl_model, betas):
+    """
+    Compute pelvis (joint 0) location in the T-pose for given shape betas.
+
+    Parameters
+    ----------
+    smpl_model : smplx.SMPL (or SMPLX) instance
+    betas : (num_betas,) or (B, num_betas) tensor or array
+
+    Returns
+    -------
+    (3,) tensor if unbatched, or (B,3) tensor if batched.
+    """
+    device = smpl_model.v_template.device
+    dtype  = smpl_model.v_template.dtype
+
+    betas = torch.as_tensor(betas, device=device, dtype=dtype)
+    if betas.ndim == 1:
+        betas = betas.unsqueeze(0)  # (1, num_betas)
+
+    # v_shaped: (B, N, 3)
+    v_shaped = smpl_model.v_template.unsqueeze(0) + \
+               blend_shapes(betas, smpl_model.shapedirs)
+
+    # J: (B, J, 3)
+    J = vertices2joints(smpl_model.J_regressor, v_shaped)
+
+    # pelvis is index 0 in SMPL
+    T_hip = J[:, 0, :]  # (B,3)
+    return T_hip.squeeze(0)  # return (3,) if unbatched
+
 def interpolate_rotations(rotations, ts_in, ts_out):
     """
     Interpolate rotations given at timestamps `ts_in` to timestamps given at `ts_out`. This performs the equivalent
@@ -203,7 +237,7 @@ def main(args):
             smpl2op_mapping_openpose = torch.tensor(smpl_to_pose(model_type='smpl', use_hands=False, use_face=False,
                                             use_face_contour=False, openpose_format='coco25'), dtype=torch.long).cuda()
         
-        J_regressor_extra9 = np.load('./J_regressor_extra.npy')
+        J_regressor_extra9 = np.load('/scratch/izar/cizinsky/venvs/trace/smpl_model_data/J_regressor_extra.npy')
         J_regressor_extra9 = torch.tensor(J_regressor_extra9, dtype=torch.float32).cuda()
     elif args.mode == 'final':
         refined_smpl_dir = f'{DIR}/{seq}/init_refined_smpl_files'
@@ -211,7 +245,7 @@ def main(args):
         refined_smpl_paths = sorted(glob.glob(f"{refined_smpl_dir}/*.pkl"))
         refined_smpl_mask_paths = [sorted(glob.glob(f"{refined_smpl_mask_dir}/{person_i}/*.png")) for person_i in range(number_person)]
 
-        save_dir = f'../data/{seq}'
+        save_dir = f'{args.out_dir}/data/{seq}'
         if not os.path.exists(os.path.join(save_dir, 'image')):
             os.makedirs(os.path.join(save_dir, 'image'))
         if not os.path.exists(os.path.join(save_dir, 'mask')):
@@ -549,7 +583,9 @@ def main(args):
                 # transform the spaces such that our camera has the same orientation as the OpenGL camera
                 target_extrinsic = np.eye(4)
                 target_extrinsic[1:3] *= -1
-                T_hip = smpl_model.get_T_hip(betas=torch.tensor(smpl_shape[i])[None].float().to(device)).squeeze().cpu().numpy()
+                # T_hip = compute_T_hip_from_betas(smpl_model, torch.tensor(smpl_shape[i]), device).squeeze().cpu().numpy()
+                # T_hip = smpl_model.get_T_hip(betas=torch.tensor(smpl_shape[i])[None].float().to(device)).squeeze().cpu().numpy()
+                T_hip = get_T_hip_from_smpl(smpl_model, smpl_shape[i]).cpu().numpy()
                 target_extrinsic, smpl_pose, smpl_trans = transform_smpl_remain_extrinsic(cam_extrinsics, target_extrinsic, smpl_pose, smpl_trans, T_hip)
                 smpl_output = smpl_model(betas=torch.tensor(smpl_shape[i])[None].float().to(device),
                                          body_pose=torch.tensor(smpl_pose[3:])[None].float().to(device),
@@ -597,6 +633,7 @@ def main(args):
         np.save(os.path.join(save_dir, 'normalize_trans.npy'), np.array(output_trans))
         np.savez(os.path.join(save_dir, "cameras.npz"), **output_P)
         np.save(os.path.join(save_dir, "max_human_sphere.npy"), np.array(max_human_sphere_all))
+        print(f"Output save in {save_dir}")
         print("max_human_sphere_all: ", max_human_sphere_all)
         print('output_pose', np.array(output_pose).shape)
         print('mean_shape', smpl_shape.shape)
