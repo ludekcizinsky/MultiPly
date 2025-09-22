@@ -34,7 +34,7 @@ test:
     dataset: "Hi4DTest"
     subject: "football"
     start_frame: 100
-    end_frame: 200
+    end_frame: 175
     image_id: 0
 
     batch_size: 1
