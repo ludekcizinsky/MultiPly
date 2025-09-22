@@ -143,6 +143,13 @@ def main(input_root: str, output_root: str, visualize_mesh: bool = True):
     server = viser.ViserServer()  # prints a URL; open it in your browser
     server.scene.add_grid("/grid", width=10.0, height=10.0, position=(0, 0, 0))
 
+    if args.share:
+        url = server.request_share_url()
+        print(f"[Viser] Share URL: {url}", flush=True)
+        if args.share_url_file:
+            with open(args.share_url_file, "w") as f:
+                f.write(url.strip() + "\n")
+
     # GUI: frame scrubber
     frame_slider = server.gui.add_slider(
         "frame", min=start_frame, max=end_frame - 1, step=1, initial_value=start_frame
@@ -162,16 +169,23 @@ def main(input_root: str, output_root: str, visualize_mesh: bool = True):
 
     # Add one mesh handle per person (we’ll replace geometry on updates).
     mesh_handles = []
+    mesh_paths   = []  # <— add this
+    mesh_colors  = []  # <— optional, if you want to reuse exact color
+
     if visualize_mesh:
         for p in range(number_person):
             color = (COLORS[p % len(COLORS)] * 255).astype(np.uint8)
+            path = f"/mesh_{p}"                    # <— cache path
             h = server.scene.add_mesh_simple(
-                f"/mesh_{p}",
+                path,
                 vertices=per_person_vertices[p][frame_slider.value].astype(np.float32, copy=False),
-                faces=per_person_faces[p][frame_slider.value].astype(np.uint32,   copy=False),
+                faces=per_person_faces[p][frame_slider.value].astype(np.uint32, copy=False),
                 color=(int(color[0]), int(color[1]), int(color[2])),
             )
             mesh_handles.append(h)
+            mesh_paths.append(path)                # <— store
+            mesh_colors.append(tuple(int(x) for x in color))  # <— store if desired
+
 
     # Add a camera frustum with the first frame’s image; reuse the same handle.
     image0 = iio.imread(image_files[frame_slider.value])
@@ -209,16 +223,38 @@ def main(input_root: str, output_root: str, visualize_mesh: bool = True):
         if visualize_mesh:
             with server.atomic():
                 for p, h in enumerate(mesh_handles):
-                    # Match whatever dtype the handle currently has (in case Viser chose its own)
+                    v_new = per_person_vertices[p][f]
+                    f_new = per_person_faces[p][f]
+
+                    # current dtypes (if handle was removed previously, this block only runs when h is valid)
                     vdt = h.vertices.dtype
                     fdt = h.faces.dtype
-                    h.vertices = per_person_vertices[p][f].astype(vdt, copy=False)
-                    h.faces    = per_person_faces[p][f].astype(fdt, copy=False)
 
+                    if h.vertices.shape != v_new.shape or h.faces.shape != f_new.shape:
+                        # topology changed → recreate using cached path/color
+                        cached_path  = mesh_paths[p]
+                        cached_color = mesh_colors[p]  # (r,g,b)
+
+                        # remove the old node and create a fresh one at the same path
+                        h.remove()
+                        new_h = server.scene.add_mesh_simple(
+                            cached_path,
+                            vertices=v_new.astype(np.float32, copy=False),
+                            faces=f_new.astype(np.uint32, copy=False),
+                            color=cached_color,
+                        )
+                        mesh_handles[p] = new_h
+                    else:
+                        # topology same → safe in-place update
+                        h.vertices = v_new.astype(vdt, copy=False)
+                        h.faces    = f_new.astype(fdt, copy=False)
+
+        # Update camera/frustum
         T_cam_f = T_world_cams[f]
         frame_node.wxyz = T_cam_f.rotation().wxyz
         frame_node.position = T_cam_f.translation()
         frustum.image = iio.imread(image_files[f])
+
 
     @frame_slider.on_update
     def _(_):
@@ -243,6 +279,9 @@ if __name__ == "__main__":
         default="../code/outputs/Hi4D/taichi01_sam_delay_depth_loop_2_MLP_vitpose_openpose",
         help="Path with test_mesh/<p>/<frame>_deformed.ply",
     )
+    parser.add_argument("--share", action="store_true", default=False, help="Request public share URL via Viser relay")
+    parser.add_argument("--share-url-file", type=str, default="", help="Write share URL here")
+
     parser.add_argument("--no-mesh", action="store_true", help="Disable mesh visualization")
     args = parser.parse_args()
 
