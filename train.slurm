@@ -17,4 +17,4 @@ conda activate multiply
 cd /home/cizinsky/MultiPly
 
 # python code/train.py model.is_continue=true
-python code/train.py  --config-name=football_base
+python code/train.py  --config-name=football_base model.is_continue=true

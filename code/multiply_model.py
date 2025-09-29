@@ -53,8 +53,12 @@ class MultiplyModel(pl.LightningModule):
                     self.body_model_list[i].set_requires_grad(param_name, requires_grad=True)
             self.training_modules += ['body_model_list']
 
+        self._validation_outputs = []
+        self.visualisation_output_dir = os.path.join(opt.output_dir, 'visualisations')
+        os.makedirs(self.visualisation_output_dir, exist_ok=True)
+
         self.loss = Loss(opt.model.loss)
-        self.sam_server = SAMServer(opt.dataset.train, opt.pretrained_models_path)
+        self.sam_server = SAMServer(opt.dataset.train, opt.pretrained_models_path, self.visualisation_output_dir)
         self.using_sam = opt.dataset.train.using_SAM
         self.pose_correction_epoch = opt.model.pose_correction_epoch
         self.sigmoid = nn.Sigmoid()
@@ -62,10 +66,6 @@ class MultiplyModel(pl.LightningModule):
 
         self._stepped_joint = False
         self._stepped_pose  = False
-
-        self._validation_outputs = []
-        self.visualisation_output_dir = os.path.join(opt.output_dir, 'visualisations')
-        os.makedirs(self.visualisation_output_dir, exist_ok=True)
 
     def init_params(self, opt):
         # depth end determines whether apply depth & interpenetration loss during or at the end of epochs.
@@ -213,6 +213,7 @@ class MultiplyModel(pl.LightningModule):
             loss_output.update({'depth_order_loss_pyrender': torch.zeros((1), device=device)})
             loss_output.update({'loss_instance_silhouette': torch.zeros((1), device=device)})
             loss_output.update({'loss_interpenetration': torch.zeros((1), device=device)})
+
         for k, v in loss_output.items():
             if k in ["loss"]:
                 self.log(k, v.item(), prog_bar=True, on_step=True)
@@ -249,7 +250,7 @@ class MultiplyModel(pl.LightningModule):
 
     def opt_depth(self):
         # do not change the test setting to novel pose setting.
-        testset = create_dataset(self.opt.dataset.test)
+        testset = create_dataset(self.opt, self.opt.dataset.test)
         for batch_ndx, batch in enumerate(tqdm(testset)):
             # generate instance mask for all test images
             inputs, targets, pixel_per_batch, total_pixels, idx = batch
@@ -495,18 +496,14 @@ class MultiplyModel(pl.LightningModule):
                     loss_dict['depth_order_loss'] = loss
                     loss_dict["render_loss"] = loss_output["loss"]
 
+                    # log the loss dict
+                    self.log_dict(loss_dict, on_step=True, on_epoch=True)
+
                 total_loss.backward()
                 optimizer_transl.step()
 
-                l_str = 'Iter: %d' % it
-                for k in loss_dict:
-                    l_str += ', %s: %0.4f' % (k, loss_dict[k].mean().item())
-                    loop.set_description(l_str)
 
-
-
-
-    def on_training_epoch_end(self, outputs) -> None:
+    def on_train_epoch_end(self) -> None: 
         # Canonical mesh update every 20 epochs
         if self.current_epoch != 0 and self.current_epoch % 20 == 0:
             for person_id, smpl_server in enumerate(self.model.smpl_server_list):
@@ -526,7 +523,7 @@ class MultiplyModel(pl.LightningModule):
                     self.model.mesh_face_vertices_list[person_id] = index_vertices_by_faces(self.model.mesh_v_cano_list[person_id], self.model.mesh_f_cano_list[person_id])
                 except:
                     print("Canonical mesh generation failed, do not update it. mainly because the mesh (Surface level must be within volume data range).")
-        if self.current_epoch % 50 == 0:
+        if self.current_epoch % self.opt.model.loss.sam_start_epoch == 0:
             torch.cuda.empty_cache()
             self.get_instance_mask()
             torch.cuda.empty_cache()
@@ -536,7 +533,7 @@ class MultiplyModel(pl.LightningModule):
             torch.cuda.empty_cache()
             self.opt_depth()
             torch.cuda.empty_cache()
-        return super().on_training_epoch_end(outputs)
+        return super().on_train_epoch_end()
 
     def get_interpenetration_loss(self, vertex_list, face_list):
         num_pixels = 5120
@@ -756,16 +753,14 @@ class MultiplyModel(pl.LightningModule):
         return loss, loss_instance_silhouette, interpenetration_loss
         # gt_depth_map = max_depth_map[sam_mask_idx]
     def get_sam_mask(self):
-        print("start get refined SAM mask")
         self.sam_server.get_sam_mask(self.current_epoch)
     def get_instance_mask(self):
-        print("start get SMPL instance mask")
         self.model.eval()
         os.makedirs(f"{self.visualisation_output_dir}/stage_mask/{self.current_epoch:05d}/all", exist_ok=True)
         os.makedirs(f"{self.visualisation_output_dir}/stage_rendering/{self.current_epoch:05d}/all", exist_ok=True)
         os.makedirs(f"{self.visualisation_output_dir}/stage_fg_rendering/{self.current_epoch:05d}/all", exist_ok=True)
         os.makedirs(f"{self.visualisation_output_dir}/stage_normal/{self.current_epoch:05d}/all", exist_ok=True)
-        testset = create_dataset(self.opt.dataset.test)
+        testset = create_dataset(self.opt, self.opt.dataset.test)
         keypoint_list = [[] for _ in range(len(self.model.smpl_server_list))]
         all_person_smpl_mask_list =[]
         all_instance_mask_depth_list = []
