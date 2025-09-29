@@ -14,6 +14,7 @@ pose_correction_epoch: 500
 use_person_encoder: False
 use_nerfacc: True
 depth_end: True
+depth_epoch: [200, 1000] # when to apply depth & interpenetration loss
 implicit_network:
     feature_vector_size: 256
     d_in: 3
