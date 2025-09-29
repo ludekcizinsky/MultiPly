@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=football
+#SBATCH --job-name=tr_ball
 #SBATCH --output=/scratch/izar/cizinsky/multiply-output/slurm/%x.%j.out
 #SBATCH --error=/scratch/izar/cizinsky/multiply-output/slurm/%x.%j.err
 #SBATCH --time=48:00:00

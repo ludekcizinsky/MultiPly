@@ -2,7 +2,7 @@ train:
     dataset: Hi4D
     subject: "football"
     start_frame: 0
-    end_frame: 201
+    end_frame: 75
     batch_size: 1
     drop_last: False
     shuffle: True
@@ -33,8 +33,8 @@ valid:
 test:
     dataset: "Hi4DTest"
     subject: "football"
-    start_frame: 100
-    end_frame: 175
+    start_frame: 0
+    end_frame: 75
     image_id: 0
 
     batch_size: 1
