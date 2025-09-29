@@ -87,9 +87,8 @@ def weighted_sampling(data, img_size, num_sample):
     return output, index_outside
 
 class Hi4DDataset(torch.utils.data.Dataset):
-    def __init__(self, opt):
-        root = os.path.join("../data", opt.data_dir)
-        root = hydra.utils.to_absolute_path(root)
+    def __init__(self, run_opt, opt):
+        root = opt.data_dir 
 
         self.start_frame = opt.start_frame
         self.end_frame = opt.end_frame 
@@ -146,6 +145,10 @@ class Hi4DDataset(torch.utils.data.Dataset):
             self.pose_all.append(torch.from_numpy(pose).float())
         assert len(self.intrinsics_all) == len(self.pose_all) # == len(self.images)
 
+
+        # path to sam masks
+        self.visualisation_output_dir = os.path.join(run_opt.output_dir, 'visualisations')
+
         # other properties
         self.num_sample = opt.num_sample
         self.sampling_strategy = "weighted"
@@ -183,7 +186,7 @@ class Hi4DDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         is_certain = True
         if self.using_SAM:
-            mask_list = sorted(glob.glob(f"stage_sam_mask/*"))
+            mask_list = sorted(glob.glob(f"{self.visualisation_output_dir}/stage_sam_mask/*"))
             if len(mask_list) == 0:
                 # if idx == 0:
                 #     print("epoch 0, not using sam mask")
@@ -191,7 +194,7 @@ class Hi4DDataset(torch.utils.data.Dataset):
             else:
                 mask_path = os.path.join(mask_list[-1], "sam_opt_mask.npy")
                 if mask_path != self.pre_mask_path:
-                    smpl_mask_list = sorted(glob.glob(f"stage_instance_mask/*"))
+                    smpl_mask_list = sorted(glob.glob(f"{self.visualisation_output_dir}/stage_instance_mask/*"))
                     smpl_mask_path = os.path.join(smpl_mask_list[-1], "all_person_smpl_mask.npy")
                     smpl_mask = np.load(smpl_mask_path) > 0.8
                     try:
@@ -327,8 +330,8 @@ class Hi4DDataset(torch.utils.data.Dataset):
             return inputs, images
 
 class Hi4DValDataset(torch.utils.data.Dataset):
-    def __init__(self, opt):
-        self.dataset = Hi4DDataset(opt)
+    def __init__(self, run_opt, opt):
+        self.dataset = Hi4DDataset(run_opt, opt)
         self.img_size = self.dataset.img_size
 
         self.total_pixels = np.prod(self.img_size)
@@ -361,8 +364,8 @@ class Hi4DValDataset(torch.utils.data.Dataset):
         return inputs, images
 
 class Hi4DTestDataset(torch.utils.data.Dataset):
-    def __init__(self, opt):
-        self.dataset = Hi4DDataset(opt)
+    def __init__(self, run_opt, opt):
+        self.dataset = Hi4DDataset(run_opt, opt)
 
         self.img_size = self.dataset.img_size # [0]
 

@@ -17,9 +17,9 @@ def find_dataset_using_name(name):
     return cls
 
 
-def create_dataset(opt):
+def create_dataset(run_opt, opt):
     dataset_cls = find_dataset_using_name(opt.dataset)
-    dataset = dataset_cls(opt)
+    dataset = dataset_cls(run_opt, opt)
     if opt.worker == 0:
         return DataLoader(
             dataset,

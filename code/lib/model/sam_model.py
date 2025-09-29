@@ -47,9 +47,10 @@ def build_sam_safe(model_type: str, checkpoint_path: str, device="cuda"):
     return sam
 
 class SAMServer():
-    def __init__(self, opt, pretrained_dir_path):
+    def __init__(self, opt, pretrained_dir_path, visualisation_output_dir):
 
         root = Path(opt.data_dir)
+        self.visualisation_output_dir = visualisation_output_dir
 
         # images
         img_dir =  root / "image"
@@ -71,8 +72,8 @@ class SAMServer():
 
     def get_sam_mask(self, current_epoch):
         np.random.seed(42)
-        smpl_mask = np.load(f'stage_instance_mask/{current_epoch:05d}/all_person_smpl_mask.npy')
-        smpl_joint = np.load(f'stage_instance_mask/{current_epoch:05d}/2d_keypoint.npy')
+        smpl_mask = np.load(f'{self.visualisation_output_dir}/stage_instance_mask/{current_epoch:05d}/all_person_smpl_mask.npy')
+        smpl_joint = np.load(f'{self.visualisation_output_dir}/stage_instance_mask/{current_epoch:05d}/2d_keypoint.npy')
         output_mask_list = []
         for i, img_path in enumerate(tqdm(self.img_paths)):
             # i = i+109
@@ -232,8 +233,8 @@ class SAMServer():
                 )
 
 
-                if not os.path.exists(f'stage_sam_mask/{current_epoch:05d}/{person_id}'):
-                    os.makedirs(f'stage_sam_mask/{current_epoch:05d}/{person_id}')  
+                if not os.path.exists(f'{self.visualisation_output_dir}/stage_sam_mask/{current_epoch:05d}/{person_id}'):
+                    os.makedirs(f'{self.visualisation_output_dir}/stage_sam_mask/{current_epoch:05d}/{person_id}')
 
                 # # for visualization
                 # plt.figure(figsize=(10, 10))
@@ -250,5 +251,5 @@ class SAMServer():
             output_mask_per_frame = np.concatenate(output_mask_per_frame, axis=0)
             output_mask_list.append(output_mask_per_frame)
         output = np.stack(output_mask_list, axis=0)
-        np.save(f"stage_sam_mask/{current_epoch:05d}/sam_opt_mask.npy", output)
+        np.save(f"{self.visualisation_output_dir}/stage_sam_mask/{current_epoch:05d}/sam_opt_mask.npy", output)
         print("sam mask output shape", output.shape)

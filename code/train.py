@@ -47,8 +47,8 @@ def main(opt):
 
     betas_path = Path(opt.dataset.train.data_dir) / "mean_shape.npy"
     model = MultiplyModel(opt, betas_path)
-    trainset = create_dataset(opt.dataset.train)
-    validset = create_dataset(opt.dataset.valid)
+    trainset = create_dataset(opt, opt.dataset.train)
+    validset = create_dataset(opt, opt.dataset.valid)
 
     if opt.model.is_continue == True:
         checkpoint = ckpt_dir / "last.ckpt"

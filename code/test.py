@@ -47,7 +47,7 @@ def main(opt):
 
     betas_path = Path(opt.dataset.train.data_dir) / "mean_shape.npy"
     model = MultiplyModel(opt, betas_path)
-    testset = create_dataset(opt.dataset.test)
+    testset = create_dataset(opt, opt.dataset.test)
     checkpoint = ckpt_dir / "last.ckpt"
     
     trainer.test(model, testset, ckpt_path=checkpoint)
