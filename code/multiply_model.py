@@ -17,7 +17,6 @@ from lib.datasets import create_dataset
 from tqdm import tqdm
 from lib.model.render import Renderer
 from typing import Any, Callable, Dict, Generator, List, Mapping, Optional, overload, Sequence, Tuple, Union
-from pytorch_lightning.core.optimizer import LightningOptimizer
 from torch.optim.optimizer import Optimizer
 from lib.model.sam_model import SAMServer
 from torch import nn
@@ -497,7 +496,7 @@ class MultiplyModel(pl.LightningModule):
                     loss_dict["render_loss"] = loss_output["loss"]
 
                     # log the loss dict
-                    self.log_dict(loss_dict, on_step=True, on_epoch=True)
+                    self.log_dict(loss_dict, on_epoch=True)
 
                 total_loss.backward()
                 optimizer_transl.step()
