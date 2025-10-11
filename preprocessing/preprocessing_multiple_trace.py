@@ -639,10 +639,10 @@ def main(args):
         print('mean_shape', smpl_shape.shape)
         print('normalize_trans', np.array(output_trans).shape)
 
-        smpl_shape = smpl_shape[1]
-        smpl_pose = smpl_pose[1]
-        trans = trans[1]
-        smpl_output = smpl_model_list[1](betas=torch.tensor(smpl_shape)[None].cuda().float(),
+        smpl_shape = smpl_shape[0]
+        smpl_pose = smpl_pose[0]
+        trans = trans[0]
+        smpl_output = smpl_model_list[0](betas=torch.tensor(smpl_shape)[None].cuda().float(),
                                          body_pose=torch.tensor(smpl_pose[3:])[None].cuda().float(),
                                          global_orient=torch.tensor(smpl_pose[:3])[None].cuda().float(),
                                          transl=torch.tensor(trans)[None].cuda().float())
