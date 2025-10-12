@@ -4,8 +4,8 @@ set -e
 # parameter setup
 folder_path="/scratch/izar/cizinsky/multiply-output/preprocessing" # absolute path of preprocessing folder
 source="custom" # "custom" if use custom data
-seq="initial_demo" # name of the sequence
-seq_path="/home/cizinsky/zurihack/converted_mp4s/$seq.mp4" # path to the seq
+seq="pushups_smpl" # name of the sequence
+seq_path="/home/cizinsky/zurihack/iphone_vids/$seq.mov" # path to the seq
 number=1 # number of people
 rm -rf ~/.cache/torch/kernels/* # remove cached torch kernels to avoid this weird error saying Torch.prod produces RuntimeError: CUDA driver error: invalid
 
@@ -20,7 +20,7 @@ cd $folder_path
 echo "---- Extracting frames from the video"
 mkdir $folder_path/raw_data/$seq
 mkdir $folder_path/raw_data/$seq/frames
-ffmpeg -i "$seq_path" -vf fps=10 "$folder_path/raw_data/$seq/frames/%04d.png"
+ffmpeg -y -i "$seq_path" -vf fps=15 -vsync 0 "$folder_path/raw_data/$seq/frames/%04d.png"
 
 echo "---- Running Trace"
 conda activate $trace_env
