@@ -17,7 +17,12 @@ import hydra
 import kaolin
 from kaolin.ops.mesh import index_vertices_by_faces
 from pytorch3d import ops
-from nerfacc import render_weight_from_density, pack_info, accumulate_along_rays
+try:
+    from nerfacc import render_weight_from_density, pack_info, accumulate_along_rays
+    import nerfacc.cuda as nerfacc_cuda
+except ImportError:
+    render_weight_from_density = pack_info = accumulate_along_rays = None
+    nerfacc_cuda = None
 from .deformer import skinning
 import json
 import warnings
@@ -28,7 +33,13 @@ class Multiply(nn.Module):
     def __init__(self, opt, betas_path, pretrained_dir_path, smpl_dir_path):
         super().__init__()
         betas = np.load(betas_path)
-        self.using_nerfacc = True
+        requested_nerfacc = opt.get('use_nerfacc', True)
+        self.using_nerfacc = requested_nerfacc and render_weight_from_density is not None
+        if self.using_nerfacc:
+            cuda_extension_available = nerfacc_cuda is not None and hasattr(nerfacc_cuda, "_C")
+            if not (torch.cuda.is_available() and cuda_extension_available):
+                warnings.warn("NERFAcc CUDA backend unavailable; falling back to standard renderer.")
+                self.using_nerfacc = False
         self.init_params(opt)
         
         # human id encoder
