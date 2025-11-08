@@ -20,6 +20,7 @@ from pytorch3d import ops
 from nerfacc import render_weight_from_density, pack_info, accumulate_along_rays
 from .deformer import skinning
 import json
+import warnings
 
 from pathlib import Path
 
@@ -105,14 +106,18 @@ class Multiply(nn.Module):
 
         if opt.smpl_init:
             pretrained_models_dir = Path(pretrained_dir_path)
-            if self.use_person_encoder:
-                smpl_model_state = torch.load(pretrained_models_dir / f'smpl_init_male_256_id.pth', weights_only=False)
+            ckpt_name = 'smpl_init_male_256_id.pth' if self.use_person_encoder else 'smpl_init_male_256.pth'
+            ckpt_path = pretrained_models_dir / ckpt_name
+            if ckpt_path.exists():
+                smpl_model_state = torch.load(ckpt_path, weights_only=False)
+                for implicit_network in self.foreground_implicit_network_list:
+                    implicit_network.load_state_dict(smpl_model_state["model_state_dict"], strict=False)
+                if not self.use_smpl_deformer:
+                    self.deformer.load_state_dict(smpl_model_state["deformer_state_dict"])
             else:
-                smpl_model_state = torch.load(pretrained_models_dir / f'smpl_init_male_256.pth', weights_only=False)
-            for implicit_network in self.foreground_implicit_network_list:
-                implicit_network.load_state_dict(smpl_model_state["model_state_dict"], strict=False)
-            if not self.use_smpl_deformer:
-                self.deformer.load_state_dict(smpl_model_state["deformer_state_dict"])
+                warnings.warn(
+                    f"SMPL init checkpoint '{ckpt_path}' not found; continuing without pre-trained initialization."
+                )
 
         if self.smpl_surface_weight > 0:
             smpl_vert_path = Path(smpl_dir_path) / "vert_segmentation.json"

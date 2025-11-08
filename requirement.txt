@@ -1,9 +1,12 @@
 --extra-index-url https://download.pytorch.org/whl/cu118
+--find-links https://nvidia-kaolin.s3.us-east-2.amazonaws.com/torch-2.1.0_cu118.html
 torch==2.1.0+cu118
 torchvision==0.16.0+cu118
 torchaudio==2.1.0+cu118
+pytorch3d @ https://dl.fbaipublicfiles.com/pytorch3d/packaging/wheels/py310_cu118_pyt210/pytorch3d-0.7.5-cp310-cp310-linux_x86_64.whl
+kaolin==0.17.0
 cython
-chumpy==0.70 
+chumpy @ git+https://github.com/mattloper/chumpy@9b045ff5d6588a24a0bab52c83f032e2ba433e17
 scikit-image==0.18.1
 pytorch-lightning
 hydra-core==1.1.1
