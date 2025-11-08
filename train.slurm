@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=tr_ball
+#SBATCH --job-name=tr_fball
 #SBATCH --output=/scratch/izar/cizinsky/multiply-output/slurm/%x.%j.out
 #SBATCH --error=/scratch/izar/cizinsky/multiply-output/slurm/%x.%j.err
 #SBATCH --time=48:00:00
@@ -16,5 +16,5 @@ conda activate multiply
 # Change to the directory where the script is located
 cd /home/cizinsky/MultiPly
 
-# python code/train.py 
-python code/train.py  --config-name=football_base 
+#python code/train.py model.is_continue=true
+python code/train.py  --config-name=football_base model.is_continue=true
