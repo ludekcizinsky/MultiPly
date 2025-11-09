@@ -16,5 +16,5 @@ conda activate multiply
 # Change to the directory where the script is located
 cd /home/cizinsky/MultiPly
 
-#python code/train.py model.is_continue=true
-python code/train.py  --config-name=football_base model.is_continue=true
+# python code/train.py model.is_continue=false
+python code/train.py  --config-name=football_base model.is_continue=false
