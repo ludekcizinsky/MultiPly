@@ -1,0 +1,48 @@
+train:
+    dataset: Hi4D
+    subject: ${scene_name}
+    start_frame: ${start_frame}
+    end_frame: ${end_frame}
+    batch_size: 1
+    drop_last: False
+    shuffle: True
+    worker: 8
+    num_person: 2
+    data_dir : /scratch/izar/cizinsky/multiply-output/preprocessing/data/${scene_name}
+    num_sample : 512
+    using_SAM: True
+    ratio_uncertain: 0.5
+
+valid:
+    dataset: "Hi4DVal"
+    subject: ${scene_name}
+    start_frame: ${start_frame}
+    end_frame: ${end_frame}
+    image_id: 0
+
+    batch_size: 1
+    drop_last: False
+    shuffle: False
+    worker: 8
+
+    data_dir : /scratch/izar/cizinsky/multiply-output/preprocessing/data/${scene_name}
+    num_sample : -1
+    pixel_per_batch: 512
+    using_SAM: True
+
+test:
+    dataset: "Hi4DTest"
+    subject: ${scene_name}
+    start_frame: ${start_frame}
+    end_frame: ${end_frame}
+    image_id: 0
+
+    batch_size: 1
+    drop_last: False
+    shuffle: False
+    worker: 0
+
+    data_dir : /scratch/izar/cizinsky/multiply-output/preprocessing/data/${scene_name}
+    num_sample : 0
+    pixel_per_batch: 512
+    using_SAM: True
