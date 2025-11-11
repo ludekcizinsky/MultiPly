@@ -31,12 +31,16 @@ cd /home/cizinsky/MultiPly
 
 # hi4d_pair15_fight15_cam4, total frames = 150  
 # python code/train.py  --config-name=hi4d_base model.is_continue=false scene_name=hi4d_pair15_fight15_cam4 end_frame=150 model.num_training_frames=150
+# scheduled
 
 # hi4d_pair16_jump16_cam4, total frames = 90  
 # python code/train.py  --config-name=hi4d_base model.is_continue=false scene_name=hi4d_pair16_jump16_cam4 end_frame=90 model.num_training_frames=90
+# scheduled
 
 # hi4d_pair17_dance17_cam28, total frames = 125  
 # python code/train.py  --config-name=hi4d_base model.is_continue=false scene_name=hi4d_pair17_dance17_cam28 end_frame=125 model.num_training_frames=125
+# scheduled
 
 # hi4d_pair19_piggyback19_cam4, total frames = 150  
 # python code/train.py  --config-name=hi4d_base model.is_continue=false scene_name=hi4d_pair19_piggyback19_cam4 end_frame=150 model.num_training_frames=150
+# scheduled
