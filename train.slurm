@@ -22,10 +22,12 @@ cd /home/cizinsky/MultiPly
 
 # -------- Hi4D videos
 # hi4d_pair00_dance00_cam76, total frames = 140
-python code/train.py  --config-name=hi4d_base model.is_continue=false scene_name=hi4d_pair00_dance00_cam76 end_frame=140 model.num_training_frames=140
+# python code/train.py  --config-name=hi4d_base model.is_continue=false scene_name=hi4d_pair00_dance00_cam76 end_frame=140 model.num_training_frames=140
+# scheduled
 
 # hi4d_pair01_hug01_cam76, total frames = 120
 # python code/train.py  --config-name=hi4d_base model.is_continue=false scene_name=hi4d_pair01_hug01_cam76 end_frame=120 model.num_training_frames=120
+# scheduled
 
 # hi4d_pair15_fight15_cam4, total frames = 150  
 # python code/train.py  --config-name=hi4d_base model.is_continue=false scene_name=hi4d_pair15_fight15_cam4 end_frame=150 model.num_training_frames=150
