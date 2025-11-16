@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=tst_taichi
+#SBATCH --job-name=tst_hi4d
 #SBATCH --output=/scratch/izar/cizinsky/multiply-output/slurm/%x.%j.out
 #SBATCH --error=/scratch/izar/cizinsky/multiply-output/slurm/%x.%j.err
 #SBATCH --time=08:00:00
@@ -16,5 +16,25 @@ conda activate multiply
 # Change to the directory where the script is located
 cd /home/cizinsky/MultiPly
 
-python code/test.py
+# -------- Custom videos
+# python code/test.py
 # python code/test.py  --config-name=football_base
+
+# -------- Hi4D videos
+# hi4d_pair00_dance00_cam76, total frames = 140
+# python code/test.py  --config-name=hi4d_base scene_name=hi4d_pair00_dance00_cam76 end_frame=140 model.num_training_frames=140
+
+# hi4d_pair01_hug01_cam76, total frames = 120
+# python code/test.py  --config-name=hi4d_base scene_name=hi4d_pair01_hug01_cam76 end_frame=120 model.num_training_frames=120
+
+# hi4d_pair15_fight15_cam4, total frames = 150  
+# python code/test.py  --config-name=hi4d_base scene_name=hi4d_pair15_fight15_cam4 end_frame=150 model.num_training_frames=150
+
+# hi4d_pair16_jump16_cam4, total frames = 90  
+# python code/test.py  --config-name=hi4d_base scene_name=hi4d_pair16_jump16_cam4 end_frame=90 model.num_training_frames=90
+
+# hi4d_pair17_dance17_cam28, total frames = 125  
+# python code/test.py  --config-name=hi4d_base scene_name=hi4d_pair17_dance17_cam28 end_frame=125 model.num_training_frames=125
+
+# hi4d_pair19_piggyback19_cam4, total frames = 150  
+python code/test.py  --config-name=hi4d_base scene_name=hi4d_pair19_piggyback19_cam4 end_frame=150 model.num_training_frames=150
