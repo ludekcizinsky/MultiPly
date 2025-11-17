@@ -1,8 +1,8 @@
 #!/bin/bash
-#SBATCH --job-name=tst_hi4d
+#SBATCH --job-name=tst2_hi4d
 #SBATCH --output=/scratch/izar/cizinsky/multiply-output/slurm/%x.%j.out
 #SBATCH --error=/scratch/izar/cizinsky/multiply-output/slurm/%x.%j.err
-#SBATCH --time=08:00:00
+#SBATCH --time=30:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8           
 #SBATCH --mem=32G                   
@@ -37,4 +37,4 @@ cd /home/cizinsky/MultiPly
 # python code/test.py  --config-name=hi4d_base scene_name=hi4d_pair17_dance17_cam28 end_frame=125 model.num_training_frames=125
 
 # hi4d_pair19_piggyback19_cam4, total frames = 150  
-python code/test.py  --config-name=hi4d_base scene_name=hi4d_pair19_piggyback19_cam4 end_frame=150 model.num_training_frames=150
+# python code/test.py  --config-name=hi4d_base scene_name=hi4d_pair19_piggyback19_cam4 end_frame=150 model.num_training_frames=150
