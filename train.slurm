@@ -46,4 +46,7 @@ cd /home/cizinsky/MultiPly
 # scheduled
 
 # -------- MMM videos
-python code/train.py  --config-name=mmm_base model.is_continue=false scene_name=mmm_cheer_camorg end_frame=187 model.num_training_frames=187 num_person=3
+# python code/train.py  --config-name=mmm_base model.is_continue=false scene_name=mmm_cheer_camorg end_frame=187 model.num_training_frames=187 num_person=3
+python code/train.py  --config-name=mmm_base model.is_continue=false scene_name=mmm_dance_camorg end_frame=130 model.num_training_frames=130 num_person=4
+# python code/train.py  --config-name=mmm_base model.is_continue=false scene_name=mmm_lift_camorg end_frame=85 model.num_training_frames=85 num_person=3
+# python code/train.py  --config-name=mmm_base model.is_continue=false scene_name=mmm_walkdance_camorg end_frame=70 model.num_training_frames=70 num_person=3
