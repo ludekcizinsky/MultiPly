@@ -44,3 +44,6 @@ cd /home/cizinsky/MultiPly
 # hi4d_pair19_piggyback19_cam4, total frames = 150  
 # python code/train.py  --config-name=hi4d_base model.is_continue=false scene_name=hi4d_pair19_piggyback19_cam4 end_frame=150 model.num_training_frames=150
 # scheduled
+
+# -------- MMM videos
+python code/train.py  --config-name=mmm_base model.is_continue=false scene_name=mmm_cheer_camorg end_frame=187 model.num_training_frames=187 num_person=3
